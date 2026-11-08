@@ -83,6 +83,29 @@ header.page{margin-bottom:34px}
   box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .2s,opacity .2s,background .2s}
 .gpin.dim{opacity:.35}
 .gpin.focus{transform:scale(1.35)}
+.gpin.opt{background:var(--c);font-size:12px}
+.gpin.opt.focus{transform:scale(1.3)}
+/* 후보 색 */
+:root{--o1:#c2493e;--o2:#1f8a7a;--o3:#c88a1a;--o4:#6a5acd}
+.timeline.notime .stop,.timeline.notime .leg,.timeline.notime .choices{grid-template-columns:1fr}
+.timeline.notime .time{display:none}
+.timeline.notime .leg>span:first-child{display:none}
+/* 식당 후보 블록 — 이동 구간 자리에 들어감 */
+.choices{display:grid;grid-template-columns:52px 1fr;gap:0 14px}
+.choices .body{position:relative;padding:6px 0 14px 26px}
+.choices .body::before{content:"";position:absolute;left:8px;top:0;bottom:0;border-left:2px dotted var(--faint)}
+.choices.active .body::before{border-left-color:var(--accent)}
+.choices h4{margin:0 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.choices ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.choices li button{display:grid;grid-template-columns:20px 1fr;gap:4px 10px;align-items:baseline;width:100%;text-align:left;padding:7px 0;border-radius:6px}
+.choices li button .dot{width:18px;height:18px;border-radius:50%;background:var(--c);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;align-self:center;opacity:.9;transition:transform .2s}
+.choices li button .nm{font-size:15px;font-weight:600;min-width:0}
+.choices li button .nm small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:1px}
+.choices li button[aria-pressed="true"] .dot{transform:scale(1.2);opacity:1}
+.choices li button[aria-pressed="true"] .nm{color:var(--accent)}
+.choices:not(.active) li button .nm{color:var(--fg)}
+.stop .pin.choice{color:var(--faint)}
+.stop .pin.choice[aria-pressed="true"]{color:var(--accent)}
 .mapwrap .open{
   position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:12px;
   font-size:12px;letter-spacing:.02em;color:var(--accent);background:var(--bg);
@@ -235,13 +258,17 @@ const TRIP = {
   mapMode: "DRIVE",          // 하루 전체 경로선 기준: DRIVE / WALK / BICYCLE (대중교통은 구간 단위에서만 가능)
   days: [
     { label: "Day 1", date: "2026-11-17", items: [
-      { time: "14:20", place: "홍콩 국제공항 도착", lat: 22.3080, lng: 113.9185 },
-      { time: "16:30", place: "숙소 체크인", note: "침사추이", lat: 22.2946, lng: 114.1717,
-        via: { type: "bus", label: "A21 버스", detail: "터미널 밖 버스 정류장에서 A21 탑승, 네이선 로드에서 하차. 옥토퍼스 가능", dur: "약 60분" } },
-      { time: "18:30", place: "저녁", note: "침사추이 근처", lat: 22.2988, lng: 114.1722,
-        via: { type: "walk", label: "도보", dur: "10분" } },
-      { time: "20:00", place: "심포니 오브 라이츠", note: "침사추이 해변 산책로", lat: 22.2936, lng: 114.1735,
-        via: { type: "walk", label: "도보", dur: "10분" } },
+      { place: "홍콩 국제공항 도착", lat: 22.3080, lng: 113.9185 },
+      { place: "YMCA The Salisbury 체크인", note: "41 Salisbury Rd, 침사추이", lat: 22.2953, lng: 114.1710,
+        via: { type: "bus", label: "A21 버스", detail: "터미널 밖 버스 정류장에서 A21 탑승, 네이선 로드 하차 후 도보. 옥토퍼스 가능", dur: "약 60분" } },
+      { place: "저녁 식사", note: "호텔 근처 후보 4곳 중 현지에서 선택",
+        options: [
+          { name: "린흥라우 蓮香樓", menu: "전통 수레 딤섬 · 차슈바오 · 에그타르트", lat: 22.2867, lng: 114.1523, note: "셩완(홍콩섬) — 호텔에서 MTR로 약 20분" },
+          { name: "융스 진피 로스트구스 榕哥陳皮燒鵝", menu: "진피 거위구이 · 새끼돼지 · 차슈 덮밥", lat: 22.2993, lng: 114.1751 },
+          { name: "구룡찬실 九龍餐室", menu: "밀크티 · 파인애플번(冰火菠蘿油) · 포크찹", lat: 22.2978, lng: 114.1714 },
+          { name: "룽 딤섬 龍點心", menu: "색색 샤오마이 모둠 · 하가우 · 창펀", lat: 22.2979, lng: 114.1707 },
+        ] },
+      { place: "빅토리아 하버 야경 산책", note: "침사추이 해변 산책로 · 스타의 거리", lat: 22.2936, lng: 114.1735 },
     ]},
     { label: "Day 2", date: "2026-11-18", items: [
       { time: "09:30", place: "숙소 출발", lat: 22.2946, lng: 114.1717 },
@@ -280,7 +307,8 @@ const TRIP = {
     { id: "tram-west", label: "Tram West", file: "tram-west.jpg" },
     { id: "tram-east", label: "Tram East", file: "tram-east.jpg" },
   ],
-  // 항목 형식: { time, place, note, lat, lng, via }
+  // 항목 형식: { time, place, note, lat, lng, via, options }
+  //   options = 후보 여러 곳(식당 등): [{ name, menu, lat, lng, note }]  — 항목을 누르면 후보들이 색깔 핀으로 지도에
   //   via = 바로 앞 장소에서 이 장소까지 오는 방법: { type, label, detail, dur, mode }
   //   type: bus / mtr / ferry / tram / walk / taxi / plane   — 아이콘 결정
   //   mode: 그 구간 경로선 기준 TRANSIT / WALK / DRIVE (기본 transit, 도보는 WALK, 택시는 DRIVE)
@@ -315,6 +343,10 @@ function gmapsRoute(stops) {
 let currentDay = todayIndex();
 let activeLeg = null;   // 펼쳐진 이동 구간의 도착 장소 index
 let activePlace = null; // 핀을 눌러 지도 가운데로 둔 장소 index
+let activeChoice = null; // 후보 목록을 지도에 띄운 항목 index
+let activeOption = null; // 그중 강조한 후보 index
+const OPT_COLORS = ["--o1", "--o2", "--o3", "--o4"];
+const OPT_LETTERS = "ABCDEFGH";
 
 const ICONS = {
   bus:   '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 18v2M16 18v2M8 14.5h.01M16 14.5h.01"/></svg>',
@@ -387,6 +419,37 @@ async function updateMap() {
   gMarkers.forEach(m => m.map = null); gMarkers = [];
   gLines.forEach(l => l.setMap(null)); gLines = [];
   const openEl = $("#mapopen");
+  const ll = s => `${s.lat},${s.lng}`;
+
+  // 후보(식당) 모드: 색깔 핀만
+  const choice = activeChoice != null ? day.items[activeChoice] : null;
+  if (choice && choice.options?.length) {
+    showMapMsg("");
+    const opts = choice.options;
+    day.items.forEach((it, n) => {           // 나머지 일정 핀은 흐리게
+      if (it.lat == null) return;
+      const el = document.createElement("div"); el.className = "gpin dim"; el.textContent = n + 1;
+      gMarkers.push(new google.maps.marker.AdvancedMarkerElement({ map: gmap, position: { lat: it.lat, lng: it.lng }, content: el, zIndex: 1 }));
+    });
+    opts.forEach((o, k) => {
+      const el = document.createElement("div"); el.className = "gpin opt"; el.textContent = OPT_LETTERS[k];
+      el.style.setProperty("--c", cssVar(OPT_COLORS[k % OPT_COLORS.length]));
+      if (activeOption != null && activeOption !== k) el.classList.add("dim");
+      if (activeOption === k) el.classList.add("focus");
+      gMarkers.push(new google.maps.marker.AdvancedMarkerElement({ map: gmap, position: { lat: o.lat, lng: o.lng }, content: el, zIndex: activeOption === k ? 10 : 5 }));
+    });
+    if (activeOption != null) {
+      const o = opts[activeOption];
+      gmap.panTo({ lat: o.lat, lng: o.lng }); gmap.setZoom(16);
+      openEl.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.name)}&center=${ll(o)}`; openEl.hidden = false;
+    } else {
+      const b = new google.maps.LatLngBounds(); opts.forEach(o => b.extend({ lat: o.lat, lng: o.lng }));
+      gmap.fitBounds(b, { top: 40, right: 40, bottom: 52, left: 40 });
+      openEl.hidden = true;
+    }
+    return;
+  }
+
   if (!pts.length) { showMapMsg("지도에 표시할 장소가 없어요"); openEl.hidden = true; return; }
   showMapMsg("");
 
@@ -405,7 +468,6 @@ async function updateMap() {
   });
 
   // 화면 맞추기 + 외부 링크
-  const ll = s => `${s.lat},${s.lng}`;
   if (focusIdx != null) {
     gmap.panTo({ lat: day.items[focusIdx].lat, lng: day.items[focusIdx].lng }); gmap.setZoom(16);
     openEl.href = gmapsPoint(day.items[focusIdx]); openEl.hidden = false;
@@ -436,9 +498,10 @@ async function updateMap() {
 }
 
 function renderDay(i) {
-  if (i !== currentDay) { activeLeg = null; activePlace = null; }
+  if (i !== currentDay) { activeLeg = null; activePlace = null; activeChoice = null; activeOption = null; }
   currentDay = i; const d = TRIP.days[i];
   const rows = [];
+  const hasTime = d.items.some(x => x.time);
   d.items.forEach((it, n) => {
     if (n > 0 && it.via) {
       const v = it.via, on = activeLeg === n;
@@ -447,27 +510,55 @@ function renderDay(i) {
         <div class="detail">${esc(v.detail || v.label || "")}${v.dur ? `<span class="dur">${esc(v.dur)}</span>` : ""}</div>
       </div></li>`);
     }
+    const hasOpts = !!it.options?.length;
     rows.push(`<li class="stop">
       <span class="time">${esc(it.time || "")}</span>
-      <span class="place"><span class="num">${n + 1}</span>${esc(it.place || "")}${it.lat != null ? `<button type="button" class="pin" data-place="${n}" aria-pressed="${activePlace === n}" aria-label="지도에서 보기">${ICONS.pin}</button>` : ""}</span>
+      <span class="place"><span class="num">${n + 1}</span>${esc(it.place || "")}${
+        it.lat != null ? `<button type="button" class="pin" data-place="${n}" aria-pressed="${activePlace === n}" aria-label="지도에서 보기">${ICONS.pin}</button>`
+        : hasOpts ? `<button type="button" class="pin choice" data-choice="${n}" aria-pressed="${activeChoice === n}" aria-label="후보를 지도에서 보기">${ICONS.pin}</button>` : ""}</span>
       ${it.note ? `<span class="note">${esc(it.note)}</span>` : ""}
     </li>`);
+    if (hasOpts) {
+      const on = activeChoice === n;
+      rows.push(`<li class="choices${on ? " active" : ""}" data-choice="${n}"><span></span><div class="body">
+        <h4>후보</h4>
+        <ul>${it.options.map((o, k) => `<li><button type="button" data-opt="${k}" aria-pressed="${on && activeOption === k}" style="--c:var(${OPT_COLORS[k % OPT_COLORS.length]})">
+          <span class="dot">${OPT_LETTERS[k]}</span>
+          <span class="nm">${esc(o.name)}<small>${esc(o.menu || "")}${o.note ? ` · ${esc(o.note)}` : ""}</small></span>
+        </button></li>`).join("")}</ul>
+      </div></li>`);
+    }
   });
   $("#daybody").innerHTML = `<div class="dayhead"><h2>${esc(d.label)}</h2><span class="date">${fmtDate(d.date)}</span></div>` +
-    (rows.length ? `<ol class="timeline">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`);
+    (rows.length ? `<ol class="timeline${hasTime ? "" : " notime"}">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`);
   renderTabbar();
   updateMap();
 }
 $("#daybody").addEventListener("click", e => {
+  const opt = e.target.closest("[data-opt]");
+  if (opt) {                                   // 후보 하나 → 그 후보 강조
+    const n = Number(opt.closest(".choices").dataset.choice), k = Number(opt.dataset.opt);
+    if (activeChoice === n && activeOption === k) { activeOption = null; }
+    else { activeChoice = n; activeOption = k; }
+    activeLeg = null; activePlace = null;
+    renderDay(currentDay); return;
+  }
+  const cpin = e.target.closest(".pin.choice");
+  if (cpin) {                                  // 항목 옆 핀 → 후보 전체 보기 토글
+    const n = Number(cpin.dataset.choice);
+    if (activeChoice === n) { activeChoice = null; activeOption = null; } else { activeChoice = n; activeOption = null; }
+    activeLeg = null; activePlace = null;
+    renderDay(currentDay); return;
+  }
   const pin = e.target.closest(".pin");
   if (pin) {
     const n = Number(pin.dataset.place);
-    activePlace = activePlace === n ? null : n; activeLeg = null;
+    activePlace = activePlace === n ? null : n; activeLeg = null; activeChoice = null; activeOption = null;
     renderDay(currentDay); return;
   }
   const li = e.target.closest(".leg"); if (!li) return;
   const n = Number(li.dataset.leg);
-  activeLeg = activeLeg === n ? null : n; activePlace = null;
+  activeLeg = activeLeg === n ? null : n; activePlace = null; activeChoice = null; activeOption = null;
   renderDay(currentDay);
 });
 
