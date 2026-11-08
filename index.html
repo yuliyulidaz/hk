@@ -99,7 +99,19 @@ header.page{margin-bottom:34px}
 .daybody{padding-top:26px}
 .dayhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:22px}
 .dayhead .date{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
-.timeline{display:flex;flex-direction:column;gap:22px;margin:0;padding:0;list-style:none}
+.timeline{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.stop{padding-block:4px}
+.leg{display:grid;grid-template-columns:52px 1fr;gap:0 14px}
+.leg .body{position:relative;padding:10px 0 10px 26px;min-height:40px}
+.leg .body::before{content:"";position:absolute;left:8px;top:0;bottom:0;border-left:2px dotted var(--faint);transition:border-color .2s}
+.leg.active .body::before{border-left-color:var(--accent)}
+.leg button{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);text-align:left;padding:2px 0}
+.leg button .dur{color:var(--faint);font-weight:400}
+.leg button svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.leg.active button{color:var(--accent);font-weight:600}
+.leg .detail{display:none;font-size:14px;color:var(--fg);margin:8px 0 4px;line-height:1.5}
+.leg.active .detail{display:block}
+.leg .detail .dur{color:var(--muted);font-size:13px;margin-left:8px}
 .stop .num{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--bg);font-size:11px;font-weight:700;line-height:18px;text-align:center;margin-right:8px;vertical-align:2px;font-variant-numeric:tabular-nums}
 .stop.move .num{background:var(--faint)}
 .stop{display:grid;grid-template-columns:52px 1fr;gap:0 14px;align-items:baseline}
@@ -300,34 +312,49 @@ const TRIP = {
   mapMode: "driving",        // 경로 그릴 때 기준: driving / walking / bicycling (Day 안에 mapMode를 두면 그 Day만 다르게)
   days: [
     { label: "Day 1", date: "2026-11-17", items: [
-      { time: "14:20", place: "홍콩 국제공항 도착", type: "move", lat: 22.3080, lng: 113.9185 },
-      { time: "15:30", place: "공항철도 → 카우룽역, 택시로 숙소", type: "move" },
-      { time: "16:30", place: "숙소 체크인", note: "침사추이", lat: 22.2946, lng: 114.1717 },
-      { time: "18:30", place: "저녁", note: "침사추이 근처", lat: 22.2988, lng: 114.1722 },
-      { time: "20:00", place: "심포니 오브 라이츠", note: "침사추이 해변 산책로", lat: 22.2936, lng: 114.1735 },
+      { time: "14:20", place: "홍콩 국제공항 도착", lat: 22.3080, lng: 113.9185 },
+      { time: "16:30", place: "숙소 체크인", note: "침사추이", lat: 22.2946, lng: 114.1717,
+        via: { type: "bus", label: "A21 버스", detail: "터미널 밖 버스 정류장에서 A21 탑승, 네이선 로드에서 하차. 옥토퍼스 가능", dur: "약 60분" } },
+      { time: "18:30", place: "저녁", note: "침사추이 근처", lat: 22.2988, lng: 114.1722,
+        via: { type: "walk", label: "도보", dur: "10분" } },
+      { time: "20:00", place: "심포니 오브 라이츠", note: "침사추이 해변 산책로", lat: 22.2936, lng: 114.1735,
+        via: { type: "walk", label: "도보", dur: "10분" } },
     ]},
     { label: "Day 2", date: "2026-11-18", items: [
-      { time: "09:30", place: "스타페리 → 센트럴", type: "move", lat: 22.2855, lng: 114.1613 },
-      { time: "10:30", place: "미드레벨 에스컬레이터 · 소호", lat: 22.2834, lng: 114.1534 },
-      { time: "12:30", place: "점심", note: "소호", lat: 22.2826, lng: 114.1520 },
-      { time: "15:00", place: "피크트램 → 빅토리아 피크", lat: 22.2759, lng: 114.1455 },
-      { time: "18:00", place: "피크 야경", lat: 22.2710, lng: 114.1500 },
+      { time: "09:30", place: "숙소 출발", lat: 22.2946, lng: 114.1717 },
+      { time: "10:00", place: "센트럴 페리 선착장", lat: 22.2855, lng: 114.1613,
+        via: { type: "ferry", label: "스타페리", detail: "침사추이 선착장에서 센트럴행. 2층이 전망 좋음", dur: "약 10분" } },
+      { time: "10:30", place: "미드레벨 에스컬레이터 · 소호", lat: 22.2834, lng: 114.1534,
+        via: { type: "walk", label: "도보", dur: "15분" } },
+      { time: "12:30", place: "점심", note: "소호", lat: 22.2826, lng: 114.1520,
+        via: { type: "walk", label: "도보", dur: "5분" } },
+      { time: "15:00", place: "빅토리아 피크", lat: 22.2759, lng: 114.1455,
+        via: { type: "tram", label: "피크트램", detail: "가든 로드 하부역에서 탑승. 줄이 길면 15번 버스가 대안", dur: "약 10분" } },
     ]},
     { label: "Day 3", date: "2026-11-19", items: [
-      { time: "10:00", place: "몽콕 · 레이디스 마켓", lat: 22.3181, lng: 114.1705 },
-      { time: "12:30", place: "딤섬 점심", note: "야우마테이", lat: 22.3115, lng: 114.1705 },
-      { time: "15:00", place: "템플 스트리트", lat: 22.3058, lng: 114.1703 },
-      { time: "17:00", place: "M+ · 서구룡문화지구", lat: 22.3024, lng: 114.1583 },
-      { time: "19:30", place: "저녁", note: "침사추이", lat: 22.2975, lng: 114.1720 },
+      { time: "10:00", place: "몽콕 · 레이디스 마켓", lat: 22.3181, lng: 114.1705,
+        via: { type: "mtr", label: "MTR 췬완선", detail: "침사추이역 → 몽콕역", dur: "약 8분" } },
+      { time: "12:30", place: "딤섬 점심", note: "야우마테이", lat: 22.3115, lng: 114.1705,
+        via: { type: "mtr", label: "MTR 한 정거장", dur: "5분" } },
+      { time: "15:00", place: "템플 스트리트", lat: 22.3058, lng: 114.1703,
+        via: { type: "walk", label: "도보", dur: "10분" } },
+      { time: "17:00", place: "M+ · 서구룡문화지구", lat: 22.3024, lng: 114.1583,
+        via: { type: "taxi", label: "택시", dur: "약 10분" } },
+      { time: "19:30", place: "저녁", note: "침사추이", lat: 22.2975, lng: 114.1720,
+        via: { type: "mtr", label: "MTR", detail: "카우룽역 → 홍콩역 → 침사추이역, 또는 택시", dur: "약 20분" } },
     ]},
     { label: "Day 4", date: "2026-11-20", items: [
       { time: "10:00", place: "체크아웃 · 짐 맡기기", lat: 22.2946, lng: 114.1717 },
-      { time: "11:00", place: "하버시티 · 1881 헤리티지", lat: 22.2953, lng: 114.1690 },
-      { time: "14:00", place: "공항철도 → 공항", type: "move" },
-      { time: "17:30", place: "출발", type: "move", lat: 22.3080, lng: 113.9185 },
+      { time: "11:00", place: "하버시티 · 1881 헤리티지", lat: 22.2953, lng: 114.1690,
+        via: { type: "walk", label: "도보", dur: "5분" } },
+      { time: "17:30", place: "홍콩 국제공항 출발", lat: 22.3080, lng: 113.9185,
+        via: { type: "bus", label: "A21 버스", detail: "14:00쯤 출발. 체크인 마감 전 도착하려면 여유 있게", dur: "약 60분" } },
     ]},
   ],
-  // 항목 형식: { time, place, note, type:"move"(이동이면), lat, lng }  — lat/lng가 있는 항목만 지도에 올라감
+  // 항목 형식: { time, place, note, lat, lng, via }
+  //   via = 바로 앞 장소에서 이 장소까지 오는 방법: { type, label, detail, dur, mode }
+  //   type: bus / mtr / ferry / tram / walk / taxi / plane   — 아이콘 결정
+  //   mode: 그 구간 지도를 그릴 때 기준 (기본 transit, 도보는 walking, 택시는 driving)
 };
 
 const PACKING = [
@@ -360,41 +387,82 @@ function gmapsRoute(stops) {
 
 /* 일정 */
 let currentDay = todayIndex();
+let activeLeg = null;   // 펼쳐진 이동 구간의 도착 장소 index
 
-function drawMap(day) {
-  const box = $("#map"); const pts = day.items.filter(s => s.lat != null);
-  const key = encodeURIComponent(TRIP.mapsKey || "");
-  const route = gmapsRoute(day.items);
-  const open = route ? `<a class="open" href="${route}" target="_blank" rel="noopener">Google 지도에서 열기 ↗</a>` : "";
+const ICONS = {
+  bus:   '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 18v2M16 18v2M8 14.5h.01M16 14.5h.01"/></svg>',
+  mtr:   '<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M9 14h.01M15 14h.01M8 17l-2 4M16 17l2 4"/></svg>',
+  tram:  '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="13" rx="3"/><path d="M5 12h14M9 15h.01M15 15h.01M12 5V2M9 18l-1 3M15 18l1 3"/></svg>',
+  ferry: '<svg viewBox="0 0 24 24"><path d="M4 17l1.5-6h13L20 17M8 11V7h8v4M12 7V4M3 20c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5"/></svg>',
+  walk:  '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.6"/><path d="M10 21l2-6M12 15l3 2 1 4M8 12l2-4 3-1 2 3 3 1M10 8l-2 6"/></svg>',
+  taxi:  '<svg viewBox="0 0 24 24"><path d="M5 17h14M4 17v-5l2-5h12l2 5v5M6 11h12M7 17v2M17 17v2M9 7V5h6v2"/></svg>',
+  plane: '<svg viewBox="0 0 24 24"><path d="M3 13l8 2 3 6 2-1-1-7 5-3c1-.6 1-2-.5-2L15 9 9 3 7 4l3 6-6 1z"/></svg>',
+};
+const LEG_MODE = { walk: "walking", taxi: "driving" };
+
+function legBounds(day, idx) {   // idx = 도착 장소 index → [출발, 도착]
+  let j = idx - 1; while (j >= 0 && day.items[j].lat == null) j--;
+  const to = day.items[idx];
+  return (j >= 0 && to.lat != null) ? [day.items[j], to] : null;
+}
+
+function drawMap(day, legIdx = null) {
+  const box = $("#map"); const key = encodeURIComponent(TRIP.mapsKey || "");
+  const ll = s => `${s.lat},${s.lng}`;
+  const leg = legIdx != null ? legBounds(day, legIdx) : null;
+  const pts = leg ? leg : day.items.filter(s => s.lat != null);
+  const via = leg ? day.items[legIdx].via || {} : null;
+  const mode = leg ? (via.mode || LEG_MODE[via.type] || "transit") : (day.mapMode || TRIP.mapMode || "driving");
+  let open = "";
+  if (pts.length >= 2) {
+    const o = pts[0], d = pts[pts.length - 1], w = pts.slice(1, -1).map(ll).join("|");
+    open = `<a class="open" href="https://www.google.com/maps/dir/?api=1&origin=${ll(o)}&destination=${ll(d)}${w ? `&waypoints=${encodeURIComponent(w)}` : ""}&travelmode=${mode === "driving" && leg ? "driving" : "transit"}" target="_blank" rel="noopener">Google 지도에서 열기 ↗</a>`;
+  } else if (pts.length === 1) open = `<a class="open" href="${gmapsPoint(pts[0])}" target="_blank" rel="noopener">Google 지도에서 열기 ↗</a>`;
   if (!TRIP.mapsKey || !pts.length) {
     box.innerHTML = `<div class="nomap">${TRIP.mapsKey ? "지도에 표시할 장소가 없어요" : "지도 키를 넣으면 여기에 표시돼요"}</div>` + open;
     return;
   }
-  const ll = s => `${s.lat},${s.lng}`;
   let src;
   if (pts.length === 1) {
     src = `https://www.google.com/maps/embed/v1/place?key=${key}&q=${ll(pts[0])}&zoom=15&language=ko&region=HK`;
   } else {
     const o = pts[0], d = pts[pts.length - 1], w = pts.slice(1, -1).map(ll).join("|");
     src = `https://www.google.com/maps/embed/v1/directions?key=${key}&origin=${ll(o)}&destination=${ll(d)}` +
-      (w ? `&waypoints=${encodeURIComponent(w)}` : "") + `&mode=${day.mapMode || TRIP.mapMode || "driving"}&language=ko&region=HK`;
+      (w ? `&waypoints=${encodeURIComponent(w)}` : "") + `&mode=${mode}&language=ko&region=HK`;
   }
   box.innerHTML = `<iframe src="${src}" title="${esc(day.label)} 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>` + open;
 }
 
 function renderDay(i) {
+  if (i !== currentDay) activeLeg = null;
   currentDay = i; const d = TRIP.days[i];
   $("#day-switch").innerHTML = TRIP.days.map((x, j) =>
     `<button type="button" data-day="${j}" ${j === i ? 'aria-current="page"' : ""}>${esc(x.label)}</button>`).join("");
   $("#day-date").textContent = fmtDate(d.date);
-  $("#daybody").innerHTML = d.items.length ? `<ol class="timeline">${d.items.map((it, n) => `
-    <li class="stop${it.type === "move" ? " move" : ""}">
+  const rows = [];
+  d.items.forEach((it, n) => {
+    if (n > 0 && it.via) {
+      const v = it.via, on = activeLeg === n;
+      rows.push(`<li class="leg${on ? " active" : ""}" data-leg="${n}"><span></span><div class="body">
+        <button type="button" aria-expanded="${on}">${ICONS[v.type] || ICONS.walk}<span>${esc(v.label || "")}</span>${!on && v.dur ? `<span class="dur">${esc(v.dur)}</span>` : ""}</button>
+        <div class="detail">${esc(v.detail || v.label || "")}${v.dur ? `<span class="dur">${esc(v.dur)}</span>` : ""}</div>
+      </div></li>`);
+    }
+    rows.push(`<li class="stop">
       <span class="time">${esc(it.time || "")}</span>
       <span class="place"><span class="num">${n + 1}</span>${esc(it.place || "")}</span>
       ${(it.note || it.lat != null) ? `<span class="note">${esc(it.note || "")}${it.lat != null ? `<a href="${gmapsPoint(it)}" target="_blank" rel="noopener">지도</a>` : ""}</span>` : ""}
-    </li>`).join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`;
-  drawMap(d);
+    </li>`);
+  });
+  $("#daybody").innerHTML = rows.length ? `<ol class="timeline">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`;
+  drawMap(d, activeLeg);
 }
+$("#daybody").addEventListener("click", e => {
+  const li = e.target.closest(".leg"); if (!li) return;
+  const n = Number(li.dataset.leg);
+  activeLeg = activeLeg === n ? null : n;
+  renderDay(currentDay);
+});
 $("#day-switch").addEventListener("click", e => {
   const b = e.target.closest("[data-day]"); if (!b) return;
   location.hash = "day" + (Number(b.dataset.day) + 1);
