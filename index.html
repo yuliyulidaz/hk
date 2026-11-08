@@ -210,7 +210,7 @@ nav.tabs button:active{transform:scale(.97)}
   <!-- 노선도 -->
   <section class="view" id="view-info" hidden>
     <header class="page">
-      <p class="eyebrow">MTR</p>
+      <p class="eyebrow" id="map-eyebrow">MTR</p>
       <h1>노선도</h1>
       <p class="sub">두 손가락으로 확대, 드래그로 이동</p>
     </header>
@@ -219,7 +219,7 @@ nav.tabs button:active{transform:scale(.97)}
       <img id="mtrimg" alt="MTR 전체 노선도" draggable="false">
       <div class="viewer-ctl"><button type="button" data-z="-">−</button><button type="button" data-z="+">+</button><button type="button" data-z="0">맞춤</button></div>
     </div>
-    <p class="empty" id="mtrmsg" hidden>저장소에 <code>mtr-map.jpg</code> 파일을 올리면 여기에 전체 노선도가 뜹니다.</p>
+    <p class="empty" id="mtrmsg" hidden>저장소에 <code id="mtrfile">mtr-map.jpg</code> 파일을 올리면 여기에 노선도가 뜹니다.</p>
 
   </section>
 </main>
@@ -273,6 +273,11 @@ const TRIP = {
       { time: "17:30", place: "홍콩 국제공항 출발", lat: 22.3080, lng: 113.9185,
         via: { type: "bus", label: "A21 버스", detail: "14:00쯤 출발. 체크인 마감 전 도착하려면 여유 있게", dur: "약 60분" } },
     ]},
+  ],
+  // 노선도 탭: 저장소에 같은 이름의 이미지 파일을 올리면 표시됨
+  routeMaps: [
+    { id: "mtr",  label: "MTR", file: "mtr-map.jpg" },
+    { id: "tram", label: "트램", file: "tram-map.jpg" },
   ],
   // 항목 형식: { time, place, note, lat, lng, via }
   //   via = 바로 앞 장소에서 이 장소까지 오는 방법: { type, label, detail, dur, mode }
@@ -523,6 +528,7 @@ function showWeather() {
 }
 
 /* 노선도 이미지 뷰어 — 핀치 확대 / 드래그 / 더블탭 */
+let currentMap = "mtr";
 (function () {
   const box = $("#mtrview"), img = $("#mtrimg");
   let sc = 1, tx = 0, ty = 0, minSc = 1, nat = { w: 0, h: 0 };
@@ -539,7 +545,12 @@ function showWeather() {
   };
   img.addEventListener("load", () => { nat = { w: img.naturalWidth, h: img.naturalHeight }; fit(); $("#mtrmsg").hidden = true; box.hidden = false; });
   img.addEventListener("error", () => { box.hidden = true; $("#mtrmsg").hidden = false; });
-  img.src = "mtr-map.jpg";
+  window.showRouteMap = id => {
+    const m = TRIP.routeMaps.find(x => x.id === id) || TRIP.routeMaps[0];
+    currentMap = m.id; $("#map-eyebrow").textContent = m.label; $("#mtrfile").textContent = m.file;
+    if (img.getAttribute("src") !== m.file) { nat = { w: 0, h: 0 }; img.removeAttribute("src"); img.src = m.file; }
+    renderTabbar();
+  };
   window.addEventListener("resize", fit);
 
   const ptrs = new Map(); let lastDist = 0, lastTap = 0;
@@ -573,18 +584,20 @@ function showWeather() {
 
 /* 하단 메뉴 (해시 라우팅: day1~day4 / weather / info) */
 let currentView = "schedule";
-let barMode = "days";   // "main" = 일정·준비물·정보, "days" = ← Day 1~4
+let barMode = "sub";    // "main" = 일정·날씨·노선도, "sub" = ← + 하위 메뉴(Day 1~4 또는 MTR·트램)
 
 function renderTabbar() {
   const ul = $("#tabbar");
-  if (barMode === "days" && currentView === "schedule") {
+  if (barMode === "sub" && (currentView === "schedule" || currentView === "info")) {
     ul.className = "days";
     if (!$("#tabnav .back")) {
       const b = document.createElement("button"); b.type = "button"; b.className = "back"; b.setAttribute("aria-label", "메뉴로");
       b.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>';
       $("#tabnav").prepend(b);
     }
-    ul.innerHTML = TRIP.days.map((x, j) => `<li><button type="button" data-day="${j}" ${j === currentDay ? 'aria-current="page"' : ""}>${esc(x.label)}<span class="dot"></span></button></li>`).join("");
+    ul.innerHTML = currentView === "schedule"
+      ? TRIP.days.map((x, j) => `<li><button type="button" data-day="${j}" ${j === currentDay ? 'aria-current="page"' : ""}>${esc(x.label)}<span class="dot"></span></button></li>`).join("")
+      : TRIP.routeMaps.map(m => `<li><button type="button" data-map="${m.id}" ${m.id === currentMap ? 'aria-current="page"' : ""}>${esc(m.label)}<span class="dot"></span></button></li>`).join("");
   } else {
     ul.className = "";
     $("#tabnav .back")?.remove();
@@ -596,11 +609,14 @@ function renderTabbar() {
 function show(h) {
   let view = "schedule";
   const m = /^day([1-4])$/.exec(h);
-  if (h === "weather" || h === "info") view = h;
+  const rm = TRIP.routeMaps.find(x => x.id === h);
+  if (h === "weather") view = "weather";
+  if (h === "info" || rm) view = "info";
   currentView = view;
-  if (view !== "schedule") barMode = "main";
+  if (view === "weather") barMode = "main";
   ["schedule", "weather", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
   if (view === "schedule") renderDay(m ? Number(m[1]) - 1 : currentDay);   // renderDay가 메뉴도 그림
+  else if (view === "info") showRouteMap(rm ? rm.id : currentMap);         // showRouteMap이 메뉴도 그림
   else renderTabbar();
   if (view === "weather") showWeather();
   window.scrollTo({ top: 0 });
@@ -613,9 +629,19 @@ $("#tabnav").addEventListener("click", e => {
     if (location.hash.slice(1) === target) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     location.hash = target; return;
   }
+  if (b.dataset.map) {
+    if (location.hash.slice(1) === b.dataset.map) return;
+    location.hash = b.dataset.map; return;
+  }
   const v = b.dataset.view;
-  if (v === "schedule") {            // 일정을 누르면 오늘 Day로, 메뉴는 Day 모드로
-    barMode = "days";
+  if (v === "info") {                // 노선도를 누르면 MTR부터, 메뉴는 하위 모드로
+    barMode = "sub";
+    const target = TRIP.routeMaps[0].id;
+    if (location.hash.slice(1) === target) show(target); else location.hash = target;
+    return;
+  }
+  if (v === "schedule") {            // 일정을 누르면 오늘 Day로, 메뉴는 하위 모드로
+    barMode = "sub";
     const target = "day" + (todayIndex() + 1);
     if (location.hash.slice(1) === target) { show(target); window.scrollTo({ top: 0, behavior: "smooth" }); }
     else location.hash = target;
@@ -628,7 +654,7 @@ $("#tabnav").addEventListener("click", e => {
 window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
 const h0 = location.hash.slice(1);
-if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "info") history.replaceState(null, "", "#day" + (todayIndex() + 1));
+if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "info" && !TRIP.routeMaps.some(x => x.id === h0)) history.replaceState(null, "", "#day" + (todayIndex() + 1));
 show(location.hash.slice(1));
 loadMaps();
 </script>
