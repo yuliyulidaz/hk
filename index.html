@@ -122,29 +122,36 @@ header.page{margin-bottom:34px}
 .stop .pin[aria-pressed="true"]{color:var(--accent)}
 .stop.move .place{font-weight:400;color:var(--muted)}
 
-/* packing */
-.cat{padding-block:26px;border-top:1px solid var(--hair)}
-.cat:first-of-type{border-top:0;padding-top:0}
-.items{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
-.item{display:flex;align-items:center;gap:14px;padding-block:9px;position:relative}
-.item input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
-.item .mark{
-  flex:none;width:18px;height:18px;border-radius:50%;
-  border:1.5px solid var(--faint);transition:border-color .2s,background .2s;
-}
-.item .label{
-  flex:1;min-width:0;font-size:16px;position:relative;transition:color .25s;
-}
-.item .label::after{
-  content:"";position:absolute;left:0;top:calc(50% + 1px);height:1.5px;width:100%;
-  background:var(--accent);transform:scaleX(0);transform-origin:left center;
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
-}
-.item input:checked ~ .mark{background:var(--accent);border-color:var(--accent)}
-.item input:checked ~ .label{color:var(--muted)}
-.item input:checked ~ .label::after{transform:scaleX(1)}
-.item label{display:flex;align-items:center;gap:14px;flex:1;min-width:0;cursor:pointer}
-.progress{margin:0 0 6px}
+/* weather */
+.refresh{margin-left:12px;color:var(--accent);font-size:13px;font-weight:500}
+.refresh.busy{opacity:.5;pointer-events:none}
+.now{display:flex;align-items:flex-end;gap:18px;margin-bottom:8px}
+.now .temp{font-size:72px;font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.now .cond{font-size:18px;font-weight:600;line-height:1.3;padding-bottom:8px}
+.now .cond small{display:block;font-size:14px;color:var(--muted);font-weight:400;margin-top:4px}
+.sun{display:flex;gap:22px;color:var(--muted);font-size:14px;margin:18px 0 0;font-variant-numeric:tabular-nums}
+.sun b{color:var(--fg);font-weight:600;margin-left:6px}
+.days-wx{list-style:none;margin:30px 0 0;padding:0;border-top:1px solid var(--hair)}
+.days-wx li{display:grid;grid-template-columns:76px 1fr auto;gap:2px 14px;align-items:baseline;padding-block:12px;border-bottom:1px solid var(--hair);font-variant-numeric:tabular-nums}
+.days-wx .d{font-size:14px}
+.days-wx .d .tag{display:block;font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.04em}
+.days-wx .c{font-size:15px;min-width:0}
+.days-wx .c small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.days-wx .t{font-size:15px;white-space:nowrap}
+.days-wx .t span{color:var(--muted);margin-left:6px}
+.days-wx li.trip .d{font-weight:600}
+
+/* 노선도 viewer */
+.viewer{position:relative;height:70vh;height:70dvh;min-height:320px;overflow:hidden;background:var(--water);
+  margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.viewer img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;will-change:transform;-webkit-user-drag:none}
+.viewer-ctl{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:12px;display:flex;gap:4px;
+  background:var(--bar);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--hair);border-radius:999px;padding:3px}
+.viewer-ctl button{min-width:36px;height:32px;padding:0 10px;border-radius:999px;font-size:15px;color:var(--fg)}
+.viewer-ctl button:active{background:var(--accent-soft)}
+#mtrmsg{margin:14px 0 0}
+#mtrmsg code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--fg)}
 
 /* info */
 .sec{padding-block:30px;border-top:1px solid var(--hair)}
@@ -206,26 +213,32 @@ nav.tabs button:active{transform:scale(.97)}
     <div class="daybody" id="daybody"></div>
   </section>
 
-  <!-- 준비물 -->
-  <section class="view" id="view-packing" hidden>
+  <!-- 날씨 -->
+  <section class="view" id="view-weather" hidden>
     <header class="page">
-      <p class="eyebrow">Packing</p>
-      <h1>준비물</h1>
-      <p class="sub progress" id="packing-progress"></p>
+      <p class="eyebrow">Weather</p>
+      <h1>홍콩 날씨</h1>
+      <p class="sub"><span id="wx-updated"></span><button type="button" class="refresh" id="wx-refresh">새로고침</button></p>
     </header>
-    <div id="packing"></div>
+    <div id="wx"></div>
   </section>
 
-  <!-- 정보 -->
+  <!-- 노선도 -->
   <section class="view" id="view-info" hidden>
     <header class="page">
-      <p class="eyebrow">Info</p>
-      <h1>정보</h1>
-      <p class="sub">여행 중 한 번씩 꺼내 볼 것들</p>
+      <p class="eyebrow">MTR</p>
+      <h1>노선도</h1>
+      <p class="sub">두 손가락으로 확대, 드래그로 이동</p>
     </header>
 
-    <section class="sec">
-      <h3>노선도</h3>
+    <div class="viewer" id="mtrview">
+      <img id="mtrimg" alt="MTR 전체 노선도" draggable="false">
+      <div class="viewer-ctl"><button type="button" data-z="-">−</button><button type="button" data-z="+">+</button><button type="button" data-z="0">맞춤</button></div>
+    </div>
+    <p class="empty" id="mtrmsg" hidden>저장소에 <code>mtr-map.jpg</code> 파일을 올리면 여기에 전체 노선도가 뜹니다. 그때까지는 아래 간략 노선도로.</p>
+
+    <section class="sec" id="mtrsimple">
+      <h3>주요 구간</h3>
       <svg class="map" viewBox="0 0 360 300" role="img" aria-label="홍콩 MTR 간략 노선도: 공항철도, 췬완선, 아일랜드선, 스타페리">
         <!-- harbour -->
         <rect x="0" y="176" width="360" height="30" rx="4" fill="var(--water)"/>
@@ -289,20 +302,6 @@ nav.tabs button:active{transform:scale(.97)}
       <p class="small" style="margin-top:12px">전체 노선은 <a href="https://www.mtr.com.hk/" target="_blank" rel="noopener">MTR 공식 사이트</a>에서.</p>
     </section>
 
-    <section class="sec" id="info-stay">
-      <h3>숙소</h3>
-      <p class="empty">숙소 정보를 아직 넣지 않았어요.</p>
-    </section>
-
-    <section class="sec" id="info-transport">
-      <h3>교통</h3>
-      <p class="empty">옥토퍼스·공항 이동 등을 여기에.</p>
-    </section>
-
-    <section class="sec" id="info-emergency">
-      <h3>비상연락</h3>
-      <p class="empty">긴급번호·영사관 연락처를 여기에.</p>
-    </section>
   </section>
 </main>
 
@@ -362,9 +361,6 @@ const TRIP = {
   //   mode: 그 구간 경로선 기준 TRANSIT / WALK / DRIVE (기본 transit, 도보는 WALK, 택시는 DRIVE)
 };
 
-const PACKING = [
-  // 형식: { category:"서류", items:["여권", "항공권 캡처"] }
-];
 /* ────────────────────────────────────────────── */
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -550,37 +546,113 @@ $("#daybody").addEventListener("click", e => {
   renderDay(currentDay);
 });
 
-/* 준비물 */
-const KEY = "hk-packing-v1";
-let checked = {};
-try { checked = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { checked = {}; }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(checked)); } catch (e) {} }
+/* 날씨 (Open-Meteo, 키 불필요) — 저장해 두고 새로고침 버튼으로만 갱신 */
+const WX_KEY = "hk-weather-v1";
+const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=22.3&longitude=114.17"
+  + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation"
+  + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset"
+  + "&timezone=Asia%2FHong_Kong&forecast_days=16";
+const WMO = { 0:"맑음",1:"대체로 맑음",2:"구름 조금",3:"흐림",45:"안개",48:"안개",51:"이슬비",53:"이슬비",55:"이슬비",
+  56:"어는 이슬비",57:"어는 이슬비",61:"약한 비",63:"비",65:"강한 비",66:"어는 비",67:"어는 비",71:"눈",73:"눈",75:"눈",77:"눈",
+  80:"소나기",81:"소나기",82:"강한 소나기",85:"눈",86:"눈",95:"뇌우",96:"뇌우·우박",99:"뇌우·우박" };
+const hm = iso => iso.slice(11, 16);
+const dayLabelFor = iso => { const d = TRIP.days.findIndex(x => x.date === iso); return d >= 0 ? TRIP.days[d].label : ""; };
 
-function renderPacking() {
-  const total = PACKING.reduce((n, c) => n + c.items.length, 0);
-  const done = PACKING.reduce((n, c, ci) => n + c.items.filter((_, ii) => checked[ci + ":" + ii]).length, 0);
-  $("#packing-progress").textContent = total ? `${done} / ${total}` : "";
-  if (!total) { $("#packing").innerHTML = `<p class="empty">준비물을 아직 넣지 않았어요.</p>`; return; }
-  $("#packing").innerHTML = PACKING.map((c, ci) => `
-    <section class="cat">
-      <h3>${esc(c.category)}</h3>
-      <ul class="items">${c.items.map((it, ii) => {
-        const id = ci + ":" + ii;
-        return `<li class="item">
-          <label><input type="checkbox" id="pk-${ci}-${ii}" data-id="${id}" ${checked[id] ? "checked" : ""}>
-          <span class="mark"></span><span class="label">${esc(it)}</span></label>
-        </li>`;
-      }).join("")}</ul>
-    </section>`).join("");
-  $("#packing").addEventListener("change", e => {
-    const cb = e.target; if (!cb.dataset.id) return;
-    checked[cb.dataset.id] = cb.checked; save();
-    const d = PACKING.reduce((n, c, ci) => n + c.items.filter((_, ii) => checked[ci + ":" + ii]).length, 0);
-    $("#packing-progress").textContent = `${d} / ${total}`;
-  });
+function loadWx() { try { return JSON.parse(localStorage.getItem(WX_KEY) || "null"); } catch (e) { return null; } }
+function renderWx(saved) {
+  const upd = $("#wx-updated"), box = $("#wx");
+  if (!saved) { upd.textContent = "아직 불러오지 않았어요"; box.innerHTML = ""; return; }
+  const { t, data: w } = saved; const c = w.current, d = w.daily;
+  const at = new Date(t);
+  upd.textContent = `${at.getMonth() + 1}.${String(at.getDate()).padStart(2, "0")} ${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")} 기준`;
+  const todayIso = d.time[0];
+  const rows = d.time.map((iso, i) => {
+    const tag = dayLabelFor(iso);
+    return `<li class="${tag ? "trip" : ""}">
+      <span class="d">${tag ? `<span class="tag">${tag}</span>` : ""}${fmtDate(iso)}</span>
+      <span class="c">${WMO[d.weather_code[i]] || "—"}${d.precipitation_probability_max[i] != null ? ` · 비 ${d.precipitation_probability_max[i]}%` : ""}
+        <small>일출 ${hm(d.sunrise[i])} · 일몰 ${hm(d.sunset[i])}</small></span>
+      <span class="t">${Math.round(d.temperature_2m_max[i])}°<span>${Math.round(d.temperature_2m_min[i])}°</span></span>
+    </li>`;
+  }).join("");
+  box.innerHTML = `
+    <div class="now">
+      <div class="temp">${Math.round(c.temperature_2m)}°</div>
+      <div class="cond">${WMO[c.weather_code] || "—"}<small>체감 ${Math.round(c.apparent_temperature)}° · 습도 ${c.relative_humidity_2m}% · 바람 ${Math.round(c.wind_speed_10m)} km/h</small></div>
+    </div>
+    <p class="sun"><span>오늘 일출<b>${hm(d.sunrise[0])}</b></span><span>일몰<b>${hm(d.sunset[0])}</b></span></p>
+    <ul class="days-wx">${rows}</ul>`;
+}
+async function refreshWx() {
+  const btn = $("#wx-refresh"); btn.classList.add("busy"); btn.textContent = "불러오는 중";
+  try {
+    const r = await fetch(WX_URL); if (!r.ok) throw 0;
+    const data = await r.json(); const saved = { t: Date.now(), data };
+    try { localStorage.setItem(WX_KEY, JSON.stringify(saved)); } catch (e) {}
+    renderWx(saved);
+  } catch (e) {
+    $("#wx-updated").textContent = "불러오지 못했어요 · 연결을 확인하고 다시 눌러주세요";
+  }
+  btn.classList.remove("busy"); btn.textContent = "새로고침";
+}
+$("#wx-refresh").addEventListener("click", refreshWx);
+let wxShown = false;
+function showWeather() {
+  const saved = loadWx(); renderWx(saved);
+  if (!saved && !wxShown) refreshWx();     // 저장된 게 없을 때만 자동으로 한 번
+  wxShown = true;
 }
 
-/* 하단 메뉴 (해시 라우팅: day1~day4 / packing / info) */
+/* 노선도 이미지 뷰어 — 핀치 확대 / 드래그 / 더블탭 */
+(function () {
+  const box = $("#mtrview"), img = $("#mtrimg");
+  let sc = 1, tx = 0, ty = 0, minSc = 1, nat = { w: 0, h: 0 };
+  const apply = () => { img.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`; };
+  const clamp = () => {
+    const W = box.clientWidth, H = box.clientHeight, w = nat.w * sc, h = nat.h * sc;
+    tx = w <= W ? (W - w) / 2 : Math.min(0, Math.max(W - w, tx));
+    ty = h <= H ? (H - h) / 2 : Math.min(0, Math.max(H - h, ty));
+  };
+  const fit = () => { if (!nat.w) return; minSc = Math.min(box.clientWidth / nat.w, box.clientHeight / nat.h); sc = minSc; clamp(); apply(); };
+  const zoomAt = (f, cx, cy) => {
+    const ns = Math.min(Math.max(sc * f, minSc), minSc * 8);
+    tx = cx - (cx - tx) * (ns / sc); ty = cy - (cy - ty) * (ns / sc); sc = ns; clamp(); apply();
+  };
+  img.addEventListener("load", () => { nat = { w: img.naturalWidth, h: img.naturalHeight }; fit(); $("#mtrmsg").hidden = true; box.hidden = false; });
+  img.addEventListener("error", () => { box.hidden = true; $("#mtrmsg").hidden = false; });
+  img.src = "mtr-map.jpg";
+  window.addEventListener("resize", fit);
+
+  const ptrs = new Map(); let lastDist = 0, lastTap = 0;
+  box.addEventListener("pointerdown", e => { if (e.target.closest(".viewer-ctl")) return; box.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
+  box.addEventListener("pointermove", e => {
+    if (!ptrs.has(e.pointerId)) return;
+    const prev = ptrs.get(e.pointerId); const cur = { x: e.clientX, y: e.clientY };
+    if (ptrs.size === 1) { tx += cur.x - prev.x; ty += cur.y - prev.y; clamp(); apply(); }
+    ptrs.set(e.pointerId, cur);
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()]; const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const r = box.getBoundingClientRect(), cx = (a.x + b.x) / 2 - r.left, cy = (a.y + b.y) / 2 - r.top;
+      if (lastDist) zoomAt(dist / lastDist, cx, cy);
+      lastDist = dist;
+    }
+  });
+  const up = e => {
+    if (ptrs.size === 1 && e.type === "pointerup") {
+      const now = Date.now(); if (now - lastTap < 300) { const r = box.getBoundingClientRect(); zoomAt(sc > minSc * 1.5 ? minSc / sc : 2.5, e.clientX - r.left, e.clientY - r.top); } lastTap = now;
+    }
+    ptrs.delete(e.pointerId); if (ptrs.size < 2) lastDist = 0;
+  };
+  box.addEventListener("pointerup", up); box.addEventListener("pointercancel", up);
+  box.addEventListener("wheel", e => { e.preventDefault(); const r = box.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  box.querySelector(".viewer-ctl").addEventListener("click", e => {
+    const b = e.target.closest("[data-z]"); if (!b) return;
+    const cx = box.clientWidth / 2, cy = box.clientHeight / 2;
+    if (b.dataset.z === "0") fit(); else zoomAt(b.dataset.z === "+" ? 1.4 : 1 / 1.4, cx, cy);
+  });
+})();
+
+/* 하단 메뉴 (해시 라우팅: day1~day4 / weather / info) */
 let currentView = "schedule";
 let barMode = "days";   // "main" = 일정·준비물·정보, "days" = ← Day 1~4
 
@@ -597,7 +669,7 @@ function renderTabbar() {
   } else {
     ul.className = "";
     $("#tabnav .back")?.remove();
-    ul.innerHTML = [["schedule", "일정"], ["packing", "준비물"], ["info", "정보"]].map(([v, t]) =>
+    ul.innerHTML = [["schedule", "일정"], ["weather", "날씨"], ["info", "노선도"]].map(([v, t]) =>
       `<li><button type="button" data-view="${v}" ${v === currentView ? 'aria-current="page"' : ""}>${t}<span class="dot"></span></button></li>`).join("");
   }
 }
@@ -605,12 +677,13 @@ function renderTabbar() {
 function show(h) {
   let view = "schedule";
   const m = /^day([1-4])$/.exec(h);
-  if (h === "packing" || h === "info") view = h;
+  if (h === "weather" || h === "info") view = h;
   currentView = view;
   if (view !== "schedule") barMode = "main";
-  ["schedule", "packing", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
+  ["schedule", "weather", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
   if (view === "schedule") renderDay(m ? Number(m[1]) - 1 : currentDay);   // renderDay가 메뉴도 그림
   else renderTabbar();
+  if (view === "weather") showWeather();
   window.scrollTo({ top: 0 });
 }
 $("#tabnav").addEventListener("click", e => {
@@ -635,9 +708,8 @@ $("#tabnav").addEventListener("click", e => {
 });
 window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
-renderPacking();
 const h0 = location.hash.slice(1);
-if (!/^day[1-4]$/.test(h0) && h0 !== "packing" && h0 !== "info") history.replaceState(null, "", "#day" + (todayIndex() + 1));
+if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "info") history.replaceState(null, "", "#day" + (todayIndex() + 1));
 show(location.hash.slice(1));
 loadMaps();
 </script>
