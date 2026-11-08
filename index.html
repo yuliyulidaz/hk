@@ -101,7 +101,11 @@ header.page{margin-bottom:34px}
 .choices.active>.body>button{color:var(--accent);font-weight:600}
 .choices ul{display:none;list-style:none;margin:8px 0 4px;padding:0;flex-direction:column;gap:2px}
 .choices.active ul{display:flex}
-.choices li button{display:grid;grid-template-columns:20px 1fr;gap:4px 10px;align-items:baseline;width:100%;text-align:left;padding:7px 0;border-radius:6px}
+.choices li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.choices li button{display:grid;grid-template-columns:20px 1fr;gap:4px 10px;align-items:baseline;width:100%;text-align:left;padding:7px 0;border-radius:6px;min-width:0}
+.choices li .ext{display:grid;place-items:center;width:36px;height:36px;color:var(--faint);border-radius:50%}
+.choices li .ext svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.choices li .ext:hover{color:var(--accent);text-decoration:none}
 .choices li button .dot{width:18px;height:18px;border-radius:50%;background:var(--c);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;align-self:center;opacity:.9;transition:transform .2s}
 .choices li button .nm{font-size:15px;font-weight:600;min-width:0;color:var(--fg)}
 .choices li button .nm small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:1px}
@@ -266,11 +270,11 @@ const TRIP = {
         via: { type: "bus", label: "A21 버스", detail: "터미널 밖 버스 정류장에서 A21 탑승, 네이선 로드 하차 후 도보. 옥토퍼스 가능", dur: "약 60분" } },
       { place: "저녁 식사", note: "호텔 근처 후보 5곳 중 현지에서 선택",
         options: [
-          { name: "록이 딤섬 樂意點心", menu: "연잎 찹쌀밥 · 차슈 창펀 · 하가우", lat: 22.2969, lng: 114.1710, note: "도보 3분 · ~23:30" },
-          { name: "융스 진피 로스트구스 榕哥陳皮燒鵝", menu: "진피 거위구이 · 새끼돼지 · 차슈 덮밥", lat: 22.2993, lng: 114.1751, note: "도보 8분 · ~24:00" },
-          { name: "구룡찬실 九龍餐室", menu: "밀크티 · 파인애플번(冰火菠蘿油) · 포크찹", lat: 22.2978, lng: 114.1714, note: "도보 5분 · ~01:30" },
-          { name: "룽 딤섬 龍點心", menu: "색색 샤오마이 모둠 · 하가우 · 창펀", lat: 22.2979, lng: 114.1707, note: "도보 5분 · ~24:00" },
-          { name: "클레이팟 라이스 煲仔飯", menu: "뚝배기밥(煲仔飯) · 철판 치킨 · 사천식 생선", lat: 22.2993, lng: 114.1745, note: "도보 8분 · ~23:00 · 뚝배기밥은 밤에 품절될 때 있음" },
+          { name: "록이 딤섬 樂意點心", placeId: "ChIJL_VUFT8BBDQREUyEc9DmwJk", menu: "연잎 찹쌀밥 · 차슈 창펀 · 하가우", lat: 22.2969, lng: 114.1710, note: "도보 3분 · ~23:30" },
+          { name: "융스 진피 로스트구스 榕哥陳皮燒鵝", placeId: "ChIJy_qbMOUBBDQRLqO15AdUQlI", menu: "진피 거위구이 · 새끼돼지 · 차슈 덮밥", lat: 22.2993, lng: 114.1751, note: "도보 8분 · ~24:00" },
+          { name: "구룡찬실 九龍餐室", placeId: "ChIJB2SpdqsBBDQRT4XgntBElPY", menu: "밀크티 · 파인애플번(冰火菠蘿油) · 포크찹", lat: 22.2978, lng: 114.1714, note: "도보 5분 · ~01:30" },
+          { name: "룽 딤섬 龍點心", placeId: "ChIJN2edS5QBBDQRWXTrJvNNaxU", menu: "색색 샤오마이 모둠 · 하가우 · 창펀", lat: 22.2979, lng: 114.1707, note: "도보 5분 · ~24:00" },
+          { name: "클레이팟 라이스 煲仔飯", placeId: "ChIJ7ZYQmdEBBDQR9Gxpj8ksleM", menu: "뚝배기밥(煲仔飯) · 철판 치킨 · 사천식 생선", lat: 22.2993, lng: 114.1745, note: "도보 8분 · ~23:00 · 뚝배기밥은 밤에 품절될 때 있음" },
         ] },
       { place: "빅토리아 하버 야경 산책", note: "침사추이 해변 산책로 · 스타의 거리", lat: 22.2936, lng: 114.1735 },
     ]},
@@ -312,7 +316,8 @@ const TRIP = {
     { id: "tram-east", label: "Tram East", file: "tram-east.jpg" },
   ],
   // 항목 형식: { time, place, note, lat, lng, via, options }
-  //   options = 후보 여러 곳(식당 등): [{ name, menu, lat, lng, note }]  — 항목을 누르면 후보들이 색깔 핀으로 지도에
+  //   options = 후보 여러 곳(식당 등): [{ name, menu, lat, lng, note, placeId }]  — 항목을 누르면 후보들이 색깔 핀으로 지도에
+  //   placeId 가 있으면 가게 옆 ↗ 가 구글 지도 상세 페이지로 연결
   //   via = 바로 앞 장소에서 이 장소까지 오는 방법: { type, label, detail, dur, mode }
   //   type: bus / mtr / ferry / tram / walk / taxi / plane   — 아이콘 결정
   //   mode: 그 구간 경로선 기준 TRANSIT / WALK / DRIVE (기본 transit, 도보는 WALK, 택시는 DRIVE)
@@ -334,6 +339,9 @@ function todayIndex() {
   if (t < ts[0]) return 0; if (t > ts[ts.length - 1]) return ts.length - 1;
   return 0;
 }
+const gmapsPlace = o => o.placeId
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.name)}&query_place_id=${o.placeId}`
+  : `https://www.google.com/maps/search/?api=1&query=${o.lat},${o.lng}`;
 const gmapsPoint = s => `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
 function gmapsRoute(stops) {
   const p = stops.filter(s => s.lat != null);
@@ -360,6 +368,7 @@ const ICONS = {
   walk:  '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.6"/><path d="M10 21l2-6M12 15l3 2 1 4M8 12l2-4 3-1 2 3 3 1M10 8l-2 6"/></svg>',
   taxi:  '<svg viewBox="0 0 24 24"><path d="M5 17h14M4 17v-5l2-5h12l2 5v5M6 11h12M7 17v2M17 17v2M9 7V5h6v2"/></svg>',
   food:  '<svg viewBox="0 0 24 24"><path d="M7 3v7a3 3 0 0 0 6 0V3M10 3v18M17 3c-1.5 1.5-2 4-2 7v2h3v9M18 3v9"/></svg>',
+  ext:   '<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
   pin:   '<svg viewBox="0 0 24 24"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>',
   plane: '<svg viewBox="0 0 24 24"><path d="M3 13l8 2 3 6 2-1-1-7 5-3c1-.6 1-2-.5-2L15 9 9 3 7 4l3 6-6 1z"/></svg>',
 };
@@ -446,7 +455,7 @@ async function updateMap() {
     if (activeOption != null) {
       const o = opts[activeOption];
       gmap.panTo({ lat: o.lat, lng: o.lng }); gmap.setZoom(16);
-      openEl.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.name)}&center=${ll(o)}`; openEl.hidden = false;
+      openEl.href = gmapsPlace(o); openEl.hidden = false;
     } else {
       const b = new google.maps.LatLngBounds(); opts.forEach(o => b.extend({ lat: o.lat, lng: o.lng }));
       gmap.fitBounds(b, { top: 40, right: 40, bottom: 52, left: 40 });
@@ -530,7 +539,7 @@ function renderDay(i) {
         <ul>${it.options.map((o, k) => `<li><button type="button" data-opt="${k}" aria-pressed="${on && activeOption === k}" style="--c:var(${OPT_COLORS[k % OPT_COLORS.length]})">
           <span class="dot">${OPT_LETTERS[k]}</span>
           <span class="nm">${esc(o.name)}<small>${esc(o.menu || "")}${o.note ? ` · ${esc(o.note)}` : ""}</small></span>
-        </button></li>`).join("")}</ul>
+        </button><a class="ext" href="${gmapsPlace(o)}" target="_blank" rel="noopener" aria-label="${esc(o.name)} 구글 지도에서 보기">${ICONS.ext}</a></li>`).join("")}</ul>
       </div></li>`);
     }
   });
