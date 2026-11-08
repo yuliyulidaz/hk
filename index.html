@@ -493,7 +493,8 @@ function renderWx(saved) {
   const todayIso = d.time[0];
   const rows = d.time.map((iso, i) => {
     const tag = dayLabelFor(iso);
-    return `<li class="${tag ? "trip" : ""}">
+    if (!tag) return "";                      // 여행 날짜만
+    return `<li class="trip">
       <span class="d">${tag ? `<span class="tag">${tag}</span>` : ""}${fmtDate(iso)}</span>
       <span class="c">${WMO[d.weather_code[i]] || "—"}${d.precipitation_probability_max[i] != null ? ` · 비 ${d.precipitation_probability_max[i]}%` : ""}
         <small>일출 ${hm(d.sunrise[i])} · 일몰 ${hm(d.sunset[i])}</small></span>
@@ -506,7 +507,7 @@ function renderWx(saved) {
       <div class="cond">${WMO[c.weather_code] || "—"}<small>체감 ${Math.round(c.apparent_temperature)}° · 습도 ${c.relative_humidity_2m}% · 바람 ${Math.round(c.wind_speed_10m)} km/h</small></div>
     </div>
     <p class="sun"><span>오늘 일출<b>${hm(d.sunrise[0])}</b></span><span>일몰<b>${hm(d.sunset[0])}</b></span></p>
-    <ul class="days-wx">${rows}</ul>`;
+    ${rows ? `<ul class="days-wx">${rows}</ul>` : `<p class="empty" style="margin-top:30px">여행 날짜 예보는 ${fmtDate(TRIP.days[0].date)} 기준 보름 전부터 나와요.</p>`}`;
 }
 async function refreshWx() {
   const btn = $("#wx-refresh"); btn.classList.add("busy"); btn.textContent = "불러오는 중";
