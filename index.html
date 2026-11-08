@@ -118,7 +118,9 @@ header.page{margin-bottom:34px}
 .stop .time{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .stop .place{font-size:17px;font-weight:600;letter-spacing:-.01em;min-width:0}
 .stop .note{grid-column:2;color:var(--muted);font-size:14px;margin-top:2px;min-width:0}
-.stop .note a{margin-left:6px}
+.stop .pin{display:inline-flex;align-items:center;vertical-align:-2px;margin-left:8px;color:var(--faint);padding:2px}
+.stop .pin svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.stop .pin[aria-pressed="true"]{color:var(--accent)}
 .stop.move .place{font-weight:400;color:var(--muted)}
 
 /* packing */
@@ -388,6 +390,7 @@ function gmapsRoute(stops) {
 /* 일정 */
 let currentDay = todayIndex();
 let activeLeg = null;   // 펼쳐진 이동 구간의 도착 장소 index
+let activePlace = null; // 핀을 눌러 지도 가운데로 둔 장소 index
 
 const ICONS = {
   bus:   '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 18v2M16 18v2M8 14.5h.01M16 14.5h.01"/></svg>',
@@ -396,6 +399,7 @@ const ICONS = {
   ferry: '<svg viewBox="0 0 24 24"><path d="M4 17l1.5-6h13L20 17M8 11V7h8v4M12 7V4M3 20c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5"/></svg>',
   walk:  '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.6"/><path d="M10 21l2-6M12 15l3 2 1 4M8 12l2-4 3-1 2 3 3 1M10 8l-2 6"/></svg>',
   taxi:  '<svg viewBox="0 0 24 24"><path d="M5 17h14M4 17v-5l2-5h12l2 5v5M6 11h12M7 17v2M17 17v2M9 7V5h6v2"/></svg>',
+  pin:   '<svg viewBox="0 0 24 24"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>',
   plane: '<svg viewBox="0 0 24 24"><path d="M3 13l8 2 3 6 2-1-1-7 5-3c1-.6 1-2-.5-2L15 9 9 3 7 4l3 6-6 1z"/></svg>',
 };
 const LEG_MODE = { walk: "walking", taxi: "driving" };
@@ -406,11 +410,12 @@ function legBounds(day, idx) {   // idx = 도착 장소 index → [출발, 도�
   return (j >= 0 && to.lat != null) ? [day.items[j], to] : null;
 }
 
-function drawMap(day, legIdx = null) {
+function drawMap(day, legIdx = null, placeIdx = null) {
   const box = $("#map"); const key = encodeURIComponent(TRIP.mapsKey || "");
   const ll = s => `${s.lat},${s.lng}`;
   const leg = legIdx != null ? legBounds(day, legIdx) : null;
-  const pts = leg ? leg : day.items.filter(s => s.lat != null);
+  const pts = placeIdx != null && day.items[placeIdx]?.lat != null ? [day.items[placeIdx]]
+            : leg ? leg : day.items.filter(s => s.lat != null);
   const via = leg ? day.items[legIdx].via || {} : null;
   const mode = leg ? (via.mode || LEG_MODE[via.type] || "transit") : (day.mapMode || TRIP.mapMode || "driving");
   let open = "";
@@ -434,7 +439,7 @@ function drawMap(day, legIdx = null) {
 }
 
 function renderDay(i) {
-  if (i !== currentDay) activeLeg = null;
+  if (i !== currentDay) { activeLeg = null; activePlace = null; }
   currentDay = i; const d = TRIP.days[i];
   $("#day-switch").innerHTML = TRIP.days.map((x, j) =>
     `<button type="button" data-day="${j}" ${j === i ? 'aria-current="page"' : ""}>${esc(x.label)}</button>`).join("");
@@ -450,17 +455,23 @@ function renderDay(i) {
     }
     rows.push(`<li class="stop">
       <span class="time">${esc(it.time || "")}</span>
-      <span class="place"><span class="num">${n + 1}</span>${esc(it.place || "")}</span>
-      ${(it.note || it.lat != null) ? `<span class="note">${esc(it.note || "")}${it.lat != null ? `<a href="${gmapsPoint(it)}" target="_blank" rel="noopener">지도</a>` : ""}</span>` : ""}
+      <span class="place"><span class="num">${n + 1}</span>${esc(it.place || "")}${it.lat != null ? `<button type="button" class="pin" data-place="${n}" aria-pressed="${activePlace === n}" aria-label="지도에서 보기">${ICONS.pin}</button>` : ""}</span>
+      ${it.note ? `<span class="note">${esc(it.note)}</span>` : ""}
     </li>`);
   });
   $("#daybody").innerHTML = rows.length ? `<ol class="timeline">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`;
-  drawMap(d, activeLeg);
+  drawMap(d, activeLeg, activePlace);
 }
 $("#daybody").addEventListener("click", e => {
+  const pin = e.target.closest(".pin");
+  if (pin) {
+    const n = Number(pin.dataset.place);
+    activePlace = activePlace === n ? null : n; activeLeg = null;
+    renderDay(currentDay); return;
+  }
   const li = e.target.closest(".leg"); if (!li) return;
   const n = Number(li.dataset.leg);
-  activeLeg = activeLeg === n ? null : n;
+  activeLeg = activeLeg === n ? null : n; activePlace = null;
   renderDay(currentDay);
 });
 $("#day-switch").addEventListener("click", e => {
