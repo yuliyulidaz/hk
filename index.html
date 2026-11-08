@@ -285,8 +285,15 @@ const TRIP = {
     ]},
     { label: "Day 2", date: "2026-11-18", items: [
       { place: "호텔 출발", note: "10시 전 출발 추천 — 사원 보고 나오면 에스컬레이터가 올라가는 방향으로 바뀜", lat: 22.2953, lng: 114.1710 },
+      { place: "아침 차찬탱", note: "셩완 현지 차찬탱 · 현금 준비 · 합석",
+        options: [
+          { name: "와록 빙실 華樂冰室", placeId: "ChIJQ-3wr34ABDQR6gGLDq0qD88", menu: "사테 소고기 면 · 돼지갈비 볶음면 · 프렌치토스트 · 밀크티", lat: 22.2852, lng: 114.1495, note: "통 스트리트 16 · 7:00~16:00 · 50년 부부 가게, 좁음" },
+          { name: "쉬키 커피 瑞記咖啡", placeId: "ChIJ5ZUWnX4ABDQR3nnKnSDAkrM", menu: "병 냉밀크티 · 프렌치토스트 · 콘비프 계란 번", lat: 22.2861, lng: 114.1498, note: "셩완 시장 건물 2층 · 8:00~16:00 · 토·일 휴무 · 현금만" },
+          { name: "포키 科記咖啡餐室", placeId: "ChIJ8Tp-z34ABDQRQcL-T1MgEd4", menu: "돼지갈비 번 · 소고기 계란 샌드위치 · (점심) 돼지갈비 덮밥", lat: 22.2852, lng: 114.1479, note: "할리우드 로드 200 · 7:00~15:00 · 현금만 · 줄 설 수 있음" },
+        ],
+        via: { type: "mtr", label: "MTR", detail: "침사추이역 → 센트럴역(췬완선) → 셩완역(아일랜드선) A2 출구, 오르막 도보 5~8분. 또는 스타페리로 센트럴 건너가 도보 15분", dur: "약 30분" } },
       { place: "만모우 사원 文武廟", note: "셩완 · 할리우드 로드 · ~18:00", lat: 22.2840, lng: 114.1502, placeId: "ChIJkR_N-HsABDQR49-CU5m1ShU",
-        via: { type: "mtr", label: "MTR", detail: "침사추이역 → 센트럴역(췬완선) → 셩완역(아일랜드선) A2 출구, 오르막 도보 8분. 또는 스타페리로 센트럴 건너가 도보 15분", dur: "약 30분" } },
+        via: { type: "walk", label: "도보", detail: "세 곳 다 사원에서 3~5분 안", dur: "4분" } },
       { place: "포호 PoHo", note: "태평산가·포힝퐁 일대 · 독립 서점·소품점·카페 골목", lat: 22.2846, lng: 114.1480,
         via: { type: "walk", label: "도보", detail: "사원 바로 뒤쪽 골목. 가볍게 한 바퀴", dur: "3분" } },
       { place: "미드레벨 에스컬레이터", note: "10시 이후 올라가는 방향 · 소호·엘긴 스트리트까지", lat: 22.2838, lng: 114.1550, placeId: "ChIJk1YpX3sABDQRcEUrangY1CY",
