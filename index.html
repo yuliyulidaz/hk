@@ -44,6 +44,7 @@
 
 html{padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{
   margin:0; background:var(--bg); color:var(--fg);
   font-family:var(--font); font-size:16px; line-height:1.55;
@@ -88,7 +89,11 @@ header.page{margin-bottom:34px}
   margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));
   background:var(--water);overflow:hidden;
 }
-.mapwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+#gmap{position:absolute;inset:0}
+.gpin{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font:700 11px/22px var(--font);text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .2s,opacity .2s,background .2s}
+.gpin.dim{opacity:.35}
+.gpin.focus{transform:scale(1.35)}
 .mapwrap .open{
   position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:12px;
   font-size:12px;letter-spacing:.02em;color:var(--accent);background:var(--bg);
@@ -193,7 +198,11 @@ nav.tabs button[aria-current="page"] .dot{background:var(--accent)}
       <div class="days" id="day-switch"></div>
       <span class="date" id="day-date"></span>
     </div>
-    <div class="mapwrap" id="map"></div>
+    <div class="mapwrap" id="map">
+      <div id="gmap"></div>
+      <div class="nomap" id="mapmsg" hidden></div>
+      <a class="open" id="mapopen" href="#" target="_blank" rel="noopener" hidden>Google 지도에서 열기 ↗</a>
+    </div>
     <div class="daybody" id="daybody"></div>
   </section>
 
@@ -309,9 +318,9 @@ nav.tabs button[aria-current="page"] .dot{background:var(--accent)}
 /* ───────────── 내용 (여기만 고치면 됨) ───────────── */
 const TRIP = {
   // 날짜가 되면 그날 Day 페이지가 먼저 뜸 (여행 전엔 Day 1, 후엔 Day 4)
-  // 지도: Google Maps Embed API — 그날 lat/lng가 있는 장소들을 순서대로 이어 경로로 보여줌
+  // 지도: Google Maps JavaScript API + Routes API — 그날 lat/lng가 있는 장소를 핀으로, 사이를 경로선으로
   mapsKey: "AIzaSyCcL_bS9msj_EdP-x2xk6QX7mw8iCSnqvo",
-  mapMode: "driving",        // 경로 그릴 때 기준: driving / walking / bicycling (Day 안에 mapMode를 두면 그 Day만 다르게)
+  mapMode: "DRIVE",          // 하루 전체 경로선 기준: DRIVE / WALK / BICYCLE (대중교통은 구간 단위에서만 가능)
   days: [
     { label: "Day 1", date: "2026-11-17", items: [
       { time: "14:20", place: "홍콩 국제공항 도착", lat: 22.3080, lng: 113.9185 },
@@ -356,7 +365,7 @@ const TRIP = {
   // 항목 형식: { time, place, note, lat, lng, via }
   //   via = 바로 앞 장소에서 이 장소까지 오는 방법: { type, label, detail, dur, mode }
   //   type: bus / mtr / ferry / tram / walk / taxi / plane   — 아이콘 결정
-  //   mode: 그 구간 지도를 그릴 때 기준 (기본 transit, 도보는 walking, 택시는 driving)
+  //   mode: 그 구간 경로선 기준 TRANSIT / WALK / DRIVE (기본 transit, 도보는 WALK, 택시는 DRIVE)
 };
 
 const PACKING = [
@@ -402,7 +411,7 @@ const ICONS = {
   pin:   '<svg viewBox="0 0 24 24"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>',
   plane: '<svg viewBox="0 0 24 24"><path d="M3 13l8 2 3 6 2-1-1-7 5-3c1-.6 1-2-.5-2L15 9 9 3 7 4l3 6-6 1z"/></svg>',
 };
-const LEG_MODE = { walk: "walking", taxi: "driving" };
+const LEG_MODE = { walk: "WALK", taxi: "DRIVE" };
 
 function legBounds(day, idx) {   // idx = 도착 장소 index → [출발, 도착]
   let j = idx - 1; while (j >= 0 && day.items[j].lat == null) j--;
@@ -410,32 +419,105 @@ function legBounds(day, idx) {   // idx = 도착 장소 index → [출발, 도�
   return (j >= 0 && to.lat != null) ? [day.items[j], to] : null;
 }
 
-function drawMap(day, legIdx = null, placeIdx = null) {
-  const box = $("#map"); const key = encodeURIComponent(TRIP.mapsKey || "");
+/* ── Google 지도 (JavaScript API) ── */
+let gmap = null, gMarkers = [], gLines = [];
+const routeCache = new Map();
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function loadMaps() {
+  if (!TRIP.mapsKey) { showMapMsg("지도 키를 넣으면 여기에 표시돼요"); return; }
+  window.__initMap = () => {
+    gmap = new google.maps.Map($("#gmap"), {
+      center: { lat: 22.30, lng: 114.17 }, zoom: 12, mapId: "DEMO_MAP_ID",
+      disableDefaultUI: true, clickableIcons: false, gestureHandling: "greedy",
+      colorScheme: google.maps.ColorScheme.FOLLOW_SYSTEM,
+    });
+    updateMap();
+  };
+  const sc = document.createElement("script");
+  sc.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(TRIP.mapsKey)}&v=weekly&loading=async&libraries=marker,geometry&language=ko&region=HK&callback=__initMap`;
+  sc.onerror = () => showMapMsg("지도를 불러오지 못했어요");
+  document.head.appendChild(sc);
+}
+function showMapMsg(t) { const m = $("#mapmsg"); m.textContent = t; m.hidden = !t; }
+
+async function fetchRoute(pts, mode) {
+  const key = mode + ":" + pts.map(p => `${p.lat},${p.lng}`).join("|");
+  if (routeCache.has(key)) return routeCache.get(key);
+  const loc = p => ({ location: { latLng: { latitude: p.lat, longitude: p.lng } } });
+  const body = { origin: loc(pts[0]), destination: loc(pts[pts.length - 1]), travelMode: mode };
+  if (pts.length > 2) body.intermediates = pts.slice(1, -1).map(loc);
+  let path = null;
+  try {
+    const r = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Goog-Api-Key": TRIP.mapsKey, "X-Goog-FieldMask": "routes.polyline.encodedPolyline" },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    const enc = j.routes?.[0]?.polyline?.encodedPolyline;
+    if (enc) path = google.maps.geometry.encoding.decodePath(enc);
+  } catch (e) {}
+  if (!path) path = pts.map(p => ({ lat: p.lat, lng: p.lng }));   // 경로를 못 받으면 직선으로
+  routeCache.set(key, path);
+  return path;
+}
+
+let mapToken = 0;
+async function updateMap() {
+  if (!gmap) return;
+  const my = ++mapToken;
+  const day = TRIP.days[currentDay];
+  const pts = day.items.filter(s => s.lat != null);
+  gMarkers.forEach(m => m.map = null); gMarkers = [];
+  gLines.forEach(l => l.setMap(null)); gLines = [];
+  const openEl = $("#mapopen");
+  if (!pts.length) { showMapMsg("지도에 표시할 장소가 없어요"); openEl.hidden = true; return; }
+  showMapMsg("");
+
+  const leg = activeLeg != null ? legBounds(day, activeLeg) : null;
+  const focusIdx = activePlace != null && day.items[activePlace]?.lat != null ? activePlace : null;
+  const inLeg = leg ? new Set(leg) : null;
+
+  // 핀
+  day.items.forEach((it, n) => {
+    if (it.lat == null) return;
+    const el = document.createElement("div"); el.className = "gpin"; el.textContent = n + 1;
+    if (inLeg && !inLeg.has(it)) el.classList.add("dim");
+    if (focusIdx != null && focusIdx !== n) el.classList.add("dim");
+    if (focusIdx === n) el.classList.add("focus");
+    gMarkers.push(new google.maps.marker.AdvancedMarkerElement({ map: gmap, position: { lat: it.lat, lng: it.lng }, content: el, zIndex: focusIdx === n ? 10 : 1 }));
+  });
+
+  // 화면 맞추기 + 외부 링크
   const ll = s => `${s.lat},${s.lng}`;
-  const leg = legIdx != null ? legBounds(day, legIdx) : null;
-  const pts = placeIdx != null && day.items[placeIdx]?.lat != null ? [day.items[placeIdx]]
-            : leg ? leg : day.items.filter(s => s.lat != null);
-  const via = leg ? day.items[legIdx].via || {} : null;
-  const mode = leg ? (via.mode || LEG_MODE[via.type] || "transit") : (day.mapMode || TRIP.mapMode || "driving");
-  let open = "";
-  if (pts.length >= 2) {
-    const o = pts[0], d = pts[pts.length - 1], w = pts.slice(1, -1).map(ll).join("|");
-    open = `<a class="open" href="https://www.google.com/maps/dir/?api=1&origin=${ll(o)}&destination=${ll(d)}${w ? `&waypoints=${encodeURIComponent(w)}` : ""}&travelmode=${mode === "driving" && leg ? "driving" : "transit"}" target="_blank" rel="noopener">Google 지도에서 열기 ↗</a>`;
-  } else if (pts.length === 1) open = `<a class="open" href="${gmapsPoint(pts[0])}" target="_blank" rel="noopener">Google 지도에서 열기 ↗</a>`;
-  if (!TRIP.mapsKey || !pts.length) {
-    box.innerHTML = `<div class="nomap">${TRIP.mapsKey ? "지도에 표시할 장소가 없어요" : "지도 키를 넣으면 여기에 표시돼요"}</div>` + open;
-    return;
-  }
-  let src;
-  if (pts.length === 1) {
-    src = `https://www.google.com/maps/embed/v1/place?key=${key}&q=${ll(pts[0])}&zoom=15&language=ko&region=HK`;
+  if (focusIdx != null) {
+    gmap.panTo({ lat: day.items[focusIdx].lat, lng: day.items[focusIdx].lng }); gmap.setZoom(16);
+    openEl.href = gmapsPoint(day.items[focusIdx]); openEl.hidden = false;
   } else {
-    const o = pts[0], d = pts[pts.length - 1], w = pts.slice(1, -1).map(ll).join("|");
-    src = `https://www.google.com/maps/embed/v1/directions?key=${key}&origin=${ll(o)}&destination=${ll(d)}` +
-      (w ? `&waypoints=${encodeURIComponent(w)}` : "") + `&mode=${mode}&language=ko&region=HK`;
+    const fit = leg || pts;
+    const b = new google.maps.LatLngBounds(); fit.forEach(p => b.extend({ lat: p.lat, lng: p.lng }));
+    if (fit.length === 1) { gmap.setCenter(b.getCenter()); gmap.setZoom(15); }
+    else gmap.fitBounds(b, { top: 36, right: 36, bottom: 48, left: 36 });
+    const o = fit[0], d = fit[fit.length - 1], w = fit.slice(1, -1).map(ll).join("|");
+    openEl.href = fit.length === 1 ? gmapsPoint(o)
+      : `https://www.google.com/maps/dir/?api=1&origin=${ll(o)}&destination=${ll(d)}${w ? `&waypoints=${encodeURIComponent(w)}` : ""}&travelmode=transit`;
+    openEl.hidden = false;
   }
-  box.innerHTML = `<iframe src="${src}" title="${esc(day.label)} 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>` + open;
+
+  // 경로선
+  const accent = cssVar("--accent"), muted = cssVar("--faint");
+  if (leg) {
+    const via = day.items[activeLeg].via || {};
+    const mode = via.mode || LEG_MODE[via.type] || "TRANSIT";
+    const path = await fetchRoute(leg, mode);
+    if (my !== mapToken) return;
+    gLines.push(new google.maps.Polyline({ map: gmap, path, strokeColor: accent, strokeOpacity: .95, strokeWeight: 4 }));
+  } else if (pts.length > 1 && focusIdx == null) {
+    const path = await fetchRoute(pts, day.mapMode || TRIP.mapMode || "DRIVE");
+    if (my !== mapToken) return;
+    gLines.push(new google.maps.Polyline({ map: gmap, path, strokeColor: muted, strokeOpacity: .9, strokeWeight: 3 }));
+  }
 }
 
 function renderDay(i) {
@@ -460,7 +542,7 @@ function renderDay(i) {
     </li>`);
   });
   $("#daybody").innerHTML = rows.length ? `<ol class="timeline">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`;
-  drawMap(d, activeLeg, activePlace);
+  updateMap();
 }
 $("#daybody").addEventListener("click", e => {
   const pin = e.target.closest(".pin");
@@ -531,6 +613,7 @@ window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
 renderPacking();
 show(location.hash.slice(1));
+loadMaps();
 </script>
 </body>
 </html>
