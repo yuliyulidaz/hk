@@ -279,15 +279,24 @@ const TRIP = {
       { place: "빅토리아 하버 야경 산책", note: "침사추이 해변 산책로 · 스타의 거리", lat: 22.2936, lng: 114.1735 },
     ]},
     { label: "Day 2", date: "2026-11-18", items: [
-      { time: "09:30", place: "숙소 출발", lat: 22.2946, lng: 114.1717 },
-      { time: "10:00", place: "센트럴 페리 선착장", lat: 22.2855, lng: 114.1613,
-        via: { type: "ferry", label: "스타페리", detail: "침사추이 선착장에서 센트럴행. 2층이 전망 좋음", dur: "약 10분" } },
-      { time: "10:30", place: "미드레벨 에스컬레이터 · 소호", lat: 22.2834, lng: 114.1534,
-        via: { type: "walk", label: "도보", dur: "15분" } },
-      { time: "12:30", place: "점심", note: "소호", lat: 22.2826, lng: 114.1520,
+      { place: "호텔 출발", lat: 22.2953, lng: 114.1710 },
+      { place: "만모우 사원 文武廟", note: "셩완 · 할리우드 로드 · ~18:00", lat: 22.2840, lng: 114.1502, placeId: "ChIJkR_N-HsABDQR49-CU5m1ShU",
+        via: { type: "mtr", label: "MTR", detail: "침사추이역 → 센트럴역(췬완선) → 셩완역(아일랜드선) A2 출구, 오르막 도보 8분. 또는 스타페리로 센트럴 건너가 도보 15분", dur: "약 30분" } },
+      { place: "점심", note: "현지에서 상황 보고 결정",
+        options: [
+          { name: "침차이키 沾仔記", placeId: "ChIJFd-lXXsABDQRSR3-Bz40T3Q", menu: "새우 완탕면 · 삼보면(완탕+어묵+소고기)", lat: 22.2830, lng: 114.1544, note: "웰링턴 스트리트 · ~21:30 · 합석, 오래 못 앉음" },
+        ],
+        via: { type: "walk", label: "도보", detail: "할리우드 로드 따라 내려가 웰링턴 스트리트", dur: "7분" } },
+      { place: "2층 트램(딩딩) 탑승", note: "데보로드 센트럴 정류장 · 동쪽행", lat: 22.2843, lng: 114.1556,
         via: { type: "walk", label: "도보", dur: "5분" } },
-      { time: "15:00", place: "빅토리아 피크", lat: 22.2759, lng: 114.1455,
-        via: { type: "tram", label: "피크트램", detail: "가든 로드 하부역에서 탑승. 줄이 길면 15번 버스가 대안", dur: "약 10분" } },
+      { place: "익청빌딩 益昌大廈", note: "쿼리베이 · 킹스 로드 1046 · 주거 건물, 조용히", lat: 22.2841, lng: 114.2123, placeId: "ChIJ5X9ddQsBBDQR3Z3Jwj9RhKM",
+        via: { type: "tram", label: "트램 (사우케이완행)", detail: "筲箕灣 Shau Kei Wan 방면 탑승, 2층 맨 앞자리. 킹스 로드 '太古坊/Mount Parker Rd' 근처 하차. 정액 HK$3, 내릴 때 옥토퍼스", dur: "약 50~60분" } },
+      { place: "피크트램 하부역", note: "가든 로드 33 · 저녁엔 줄이 길어 온라인 예매 권장", lat: 22.2777, lng: 114.1592, placeId: "ChIJx_WyiXMABDQRJnFIJdc19Kw",
+        via: { type: "mtr", label: "MTR 아일랜드선", detail: "타이쿠역 → 센트럴역 J2 출구, 가든 로드 오르막 도보 10분. 또는 15C 버스", dur: "약 35분" } },
+      { place: "빅토리아 피크 야경", note: "스카이 테라스 428 ~22:00 · 바람 많이 붐", lat: 22.2712, lng: 114.1503, placeId: "ChIJR1J4iXMABDQRspBsr9ViNFA",
+        via: { type: "tram", label: "피크트램", detail: "오른쪽 좌석이 전망 좋음. 경사 27도", dur: "약 8분", mode: "WALK" } },
+      { place: "호텔 복귀", lat: 22.2953, lng: 114.1710,
+        via: { type: "ferry", label: "피크트램 + 스타페리", detail: "피크트램으로 내려와 센트럴 7번 부두까지 도보 15분, 스타페리로 침사추이 (마지막 배 23:30 전후). 늦으면 MTR 센트럴 → 침사추이", dur: "약 45분" } },
     ]},
     { label: "Day 3", date: "2026-11-19", items: [
       { time: "10:00", place: "몽콕 · 레이디스 마켓", lat: 22.3181, lng: 114.1705,
@@ -374,10 +383,11 @@ const ICONS = {
 };
 const LEG_MODE = { walk: "WALK", taxi: "DRIVE" };
 
+const coordOf = it => it.lat != null ? it : (it.options?.[0]?.lat != null ? it.options[0] : null);   // 후보형 항목은 첫 후보 위치
 function legBounds(day, idx) {   // idx = 도착 장소 index → [출발, 도착]
-  let j = idx - 1; while (j >= 0 && day.items[j].lat == null) j--;
-  const to = day.items[idx];
-  return (j >= 0 && to.lat != null) ? [day.items[j], to] : null;
+  let j = idx - 1; while (j >= 0 && !coordOf(day.items[j])) j--;
+  const to = coordOf(day.items[idx]);
+  return (j >= 0 && to) ? [coordOf(day.items[j]), to] : null;
 }
 
 /* ── Google 지도 (JavaScript API) ── */
@@ -475,7 +485,7 @@ async function updateMap() {
   day.items.forEach((it, n) => {
     if (it.lat == null) return;
     const el = document.createElement("div"); el.className = "gpin"; el.textContent = n + 1;
-    if (inLeg && !inLeg.has(it)) el.classList.add("dim");
+    if (inLeg && !inLeg.has(coordOf(it))) el.classList.add("dim");
     if (focusIdx != null && focusIdx !== n) el.classList.add("dim");
     if (focusIdx === n) el.classList.add("focus");
     gMarkers.push(new google.maps.marker.AdvancedMarkerElement({ map: gmap, position: { lat: it.lat, lng: it.lng }, content: el, zIndex: focusIdx === n ? 10 : 1 }));
