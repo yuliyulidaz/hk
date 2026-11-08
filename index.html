@@ -24,22 +24,17 @@
   --accent-soft:#f6e3e0;
   --bar:rgba(252,251,250,.78);
   --water:#edf1f3;
-  --l-twl:#d9332b;
-  --l-isl:#1f79c7;
-  --l-ae:#1a9a95;
   --font:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#141212; --fg:#ece7e3; --muted:#8f8580; --faint:#5f5752; --hair:#272322;
     --accent:#e2786d; --accent-soft:#3a211e; --bar:rgba(20,18,18,.72); --water:#1b2024;
-    --l-twl:#ef5a52; --l-isl:#4f9be0; --l-ae:#39b5af; color-scheme:dark;
-  }
+    }
 }
 :root[data-theme="dark"]{
   --bg:#141212; --fg:#ece7e3; --muted:#8f8580; --faint:#5f5752; --hair:#272322;
   --accent:#e2786d; --accent-soft:#3a211e; --bar:rgba(20,18,18,.72); --water:#1b2024;
-  --l-twl:#ef5a52; --l-isl:#4f9be0; --l-ae:#39b5af; color-scheme:dark;
 }
 
 html{padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
@@ -153,17 +148,6 @@ header.page{margin-bottom:34px}
 #mtrmsg{margin:14px 0 0}
 #mtrmsg code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--fg)}
 
-/* info */
-.sec{padding-block:30px;border-top:1px solid var(--hair)}
-.sec:first-of-type{border-top:0;padding-top:0}
-.map{width:100%;height:auto;display:block;overflow:visible}
-.map text{font-family:var(--font)}
-.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-size:13px;color:var(--muted)}
-.legend span::before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:7px;background:var(--c)}
-.legend .ferry::before{background:repeating-linear-gradient(90deg,var(--muted) 0 3px,transparent 3px 6px)}
-.kv{display:grid;grid-template-columns:72px 1fr;gap:10px 14px;margin:0;font-size:15px}
-.kv dt{color:var(--muted);font-size:13px;padding-top:2px}
-.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
 
 /* bottom menu — floating translucent pill, the only fixed element */
 nav.tabs{
@@ -235,72 +219,7 @@ nav.tabs button:active{transform:scale(.97)}
       <img id="mtrimg" alt="MTR 전체 노선도" draggable="false">
       <div class="viewer-ctl"><button type="button" data-z="-">−</button><button type="button" data-z="+">+</button><button type="button" data-z="0">맞춤</button></div>
     </div>
-    <p class="empty" id="mtrmsg" hidden>저장소에 <code>mtr-map.jpg</code> 파일을 올리면 여기에 전체 노선도가 뜹니다. 그때까지는 아래 간략 노선도로.</p>
-
-    <section class="sec" id="mtrsimple">
-      <h3>주요 구간</h3>
-      <svg class="map" viewBox="0 0 360 300" role="img" aria-label="홍콩 MTR 간략 노선도: 공항철도, 췬완선, 아일랜드선, 스타페리">
-        <!-- harbour -->
-        <rect x="0" y="176" width="360" height="30" rx="4" fill="var(--water)"/>
-        <text x="352" y="195" text-anchor="end" font-size="9.5" fill="var(--faint)" letter-spacing=".08">빅토리아 하버</text>
-
-        <!-- Airport Express (teal) -->
-        <polyline points="28,58 82,58 120,96 120,224" fill="none" stroke="var(--l-ae)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- Tsuen Wan Line (red): Mong Kok → TST → Admiralty → Central -->
-        <polyline points="200,36 200,230 128,230" fill="none" stroke="var(--l-twl)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- Island Line (blue) -->
-        <line x1="50" y1="244" x2="330" y2="244" stroke="var(--l-isl)" stroke-width="4" stroke-linecap="round"/>
-        <!-- Star Ferry (dashed) TST ↔ Central -->
-        <path d="M190,166 C170,190 150,206 132,220" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/>
-
-        <!-- AE stations -->
-        <g fill="var(--bg)" stroke="var(--l-ae)" stroke-width="2.4">
-          <circle cx="28" cy="58" r="4.5"/><circle cx="82" cy="58" r="4.5"/><circle cx="120" cy="150" r="4.5"/>
-        </g>
-        <!-- TWL stations (Kowloon side) -->
-        <g fill="var(--bg)" stroke="var(--l-twl)" stroke-width="2.4">
-          <circle cx="200" cy="50" r="4.5"/><circle cx="200" cy="88" r="4.5"/><circle cx="200" cy="126" r="4.5"/><circle cx="200" cy="162" r="4.5"/>
-        </g>
-        <!-- Island stations -->
-        <g fill="var(--bg)" stroke="var(--l-isl)" stroke-width="2.4">
-          <circle cx="60" cy="244" r="4.5"/><circle cx="262" cy="244" r="4.5"/><circle cx="322" cy="244" r="4.5"/>
-        </g>
-        <!-- Interchanges: Central (AE+TWL+ISL), Admiralty (TWL+ISL) -->
-        <g fill="var(--bg)" stroke="var(--fg)" stroke-width="2.2">
-          <rect x="114" y="222" width="12" height="29" rx="6"/>
-          <rect x="194" y="222" width="12" height="29" rx="6"/>
-        </g>
-
-        <!-- labels -->
-        <g font-size="10.5" fill="var(--fg)">
-          <text x="28" y="44" text-anchor="middle">공항</text>
-          <text x="82" y="44" text-anchor="middle">칭이</text>
-          <text x="110" y="153" text-anchor="end">카우룽</text>
-          <text x="190" y="53" text-anchor="end">몽콕</text>
-          <text x="190" y="91" text-anchor="end">야우마테이</text>
-          <text x="190" y="129" text-anchor="end">조던</text>
-          <text x="190" y="165" text-anchor="end" font-weight="600">침사추이</text>
-          <text x="60" y="266" text-anchor="middle">셩완</text>
-          <text x="120" y="266" text-anchor="middle" font-weight="600">센트럴</text>
-          <text x="200" y="266" text-anchor="middle">애드미럴티</text>
-          <text x="262" y="266" text-anchor="middle">완차이</text>
-          <text x="322" y="266" text-anchor="middle">코즈웨이베이</text>
-        </g>
-        <g font-size="8" fill="var(--muted)" letter-spacing=".04">
-          <text x="120" y="282" text-anchor="middle">Central · Hong Kong</text>
-          <text x="200" y="282" text-anchor="middle">Admiralty</text>
-          <text x="210" y="165">Tsim Sha Tsui</text>
-          <text x="148" y="212" text-anchor="middle" transform="rotate(-38 148 212)">스타페리</text>
-        </g>
-      </svg>
-      <div class="legend">
-        <span style="--c:var(--l-ae)">공항철도</span>
-        <span style="--c:var(--l-twl)">췬완선</span>
-        <span style="--c:var(--l-isl)">아일랜드선</span>
-        <span class="ferry">스타페리</span>
-      </div>
-      <p class="small" style="margin-top:12px">전체 노선은 <a href="https://www.mtr.com.hk/" target="_blank" rel="noopener">MTR 공식 사이트</a>에서.</p>
-    </section>
+    <p class="empty" id="mtrmsg" hidden>저장소에 <code>mtr-map.jpg</code> 파일을 올리면 여기에 전체 노선도가 뜹니다.</p>
 
   </section>
 </main>
