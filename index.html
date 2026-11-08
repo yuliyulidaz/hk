@@ -76,13 +76,7 @@ header.page{margin-bottom:34px}
 .chips button{color:var(--accent);font-weight:500}
 
 /* schedule — one day per page: switcher, map (1/3 screen), stops */
-#view-schedule{margin-top:-10px}
-.dayswitch{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
-.dayswitch .days{display:flex;gap:18px;font-size:14px;font-variant-numeric:tabular-nums}
-.dayswitch .days button{color:var(--muted);padding-block:6px;position:relative}
-.dayswitch .days button[aria-current="page"]{color:var(--fg);font-weight:600}
-.dayswitch .days button[aria-current="page"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:1px}
-.dayswitch .date{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#view-schedule{margin-top:-8px}
 .mapwrap{
   position:relative;height:33vh;height:33dvh;min-height:180px;
   margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));
@@ -175,7 +169,11 @@ nav.tabs{
   padding-top:10px;
   padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
 }
-nav.tabs ul{display:flex;justify-content:space-around;max-width:400px;margin:0 auto;padding:0;list-style:none}
+nav.tabs ul{display:flex;justify-content:space-around;align-items:center;max-width:400px;margin:0 auto;padding:0;list-style:none}
+nav.tabs ul.days{justify-content:space-between}
+nav.tabs .back{color:var(--muted);padding:4px 10px 4px 2px;font-size:14px}
+nav.tabs .back svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+nav.tabs ul.days button[data-day]{padding:4px 10px;font-variant-numeric:tabular-nums}
 nav.tabs button{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   font-size:14px;color:var(--muted);padding:4px 16px;letter-spacing:.01em;
@@ -194,10 +192,6 @@ nav.tabs button[aria-current="page"] .dot{background:var(--accent)}
 <main>
   <!-- 일정 -->
   <section class="view" id="view-schedule">
-    <div class="dayswitch">
-      <div class="days" id="day-switch"></div>
-      <span class="date" id="day-date"></span>
-    </div>
     <div class="mapwrap" id="map">
       <div id="gmap"></div>
       <div class="nomap" id="mapmsg" hidden></div>
@@ -306,13 +300,7 @@ nav.tabs button[aria-current="page"] .dot{background:var(--accent)}
   </section>
 </main>
 
-<nav class="tabs" aria-label="메뉴">
-  <ul>
-    <li><button type="button" data-view="schedule">일정<span class="dot"></span></button></li>
-    <li><button type="button" data-view="packing">준비물<span class="dot"></span></button></li>
-    <li><button type="button" data-view="info">정보<span class="dot"></span></button></li>
-  </ul>
-</nav>
+<nav class="tabs" aria-label="메뉴"><ul id="tabbar"></ul></nav>
 
 <script>
 /* ───────────── 내용 (여기만 고치면 됨) ───────────── */
@@ -523,9 +511,6 @@ async function updateMap() {
 function renderDay(i) {
   if (i !== currentDay) { activeLeg = null; activePlace = null; }
   currentDay = i; const d = TRIP.days[i];
-  $("#day-switch").innerHTML = TRIP.days.map((x, j) =>
-    `<button type="button" data-day="${j}" ${j === i ? 'aria-current="page"' : ""}>${esc(x.label)}</button>`).join("");
-  $("#day-date").textContent = fmtDate(d.date);
   const rows = [];
   d.items.forEach((it, n) => {
     if (n > 0 && it.via) {
@@ -541,7 +526,9 @@ function renderDay(i) {
       ${it.note ? `<span class="note">${esc(it.note)}</span>` : ""}
     </li>`);
   });
-  $("#daybody").innerHTML = rows.length ? `<ol class="timeline">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`;
+  $("#daybody").innerHTML = `<div class="dayhead"><h2>${esc(d.label)}</h2><span class="date">${fmtDate(d.date)}</span></div>` +
+    (rows.length ? `<ol class="timeline">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`);
+  renderTabbar();
   updateMap();
 }
 $("#daybody").addEventListener("click", e => {
@@ -555,10 +542,6 @@ $("#daybody").addEventListener("click", e => {
   const n = Number(li.dataset.leg);
   activeLeg = activeLeg === n ? null : n; activePlace = null;
   renderDay(currentDay);
-});
-$("#day-switch").addEventListener("click", e => {
-  const b = e.target.closest("[data-day]"); if (!b) return;
-  location.hash = "day" + (Number(b.dataset.day) + 1);
 });
 
 /* 준비물 */
@@ -591,27 +574,59 @@ function renderPacking() {
   });
 }
 
-/* 탭 (해시 라우팅: day1~day4 / packing / info) */
+/* 하단 메뉴 (해시 라우팅: day1~day4 / packing / info) */
+let currentView = "schedule";
+let barMode = "days";   // "main" = 일정·준비물·정보, "days" = ← Day 1~4
+
+function renderTabbar() {
+  const ul = $("#tabbar");
+  if (barMode === "days" && currentView === "schedule") {
+    ul.className = "days";
+    ul.innerHTML = `<li><button type="button" class="back" aria-label="메뉴로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button></li>` +
+      TRIP.days.map((x, j) => `<li><button type="button" data-day="${j}" ${j === currentDay ? 'aria-current="page"' : ""}>${esc(x.label)}<span class="dot"></span></button></li>`).join("");
+  } else {
+    ul.className = "";
+    ul.innerHTML = [["schedule", "일정"], ["packing", "준비물"], ["info", "정보"]].map(([v, t]) =>
+      `<li><button type="button" data-view="${v}" ${v === currentView ? 'aria-current="page"' : ""}>${t}<span class="dot"></span></button></li>`).join("");
+  }
+}
+
 function show(h) {
   let view = "schedule";
   const m = /^day([1-4])$/.exec(h);
   if (h === "packing" || h === "info") view = h;
+  currentView = view;
+  if (view !== "schedule") barMode = "main";
   ["schedule", "packing", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
-  document.querySelectorAll("nav.tabs button").forEach(b => {
-    if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
-  });
-  if (view === "schedule") renderDay(m ? Number(m[1]) - 1 : currentDay);
+  if (view === "schedule") renderDay(m ? Number(m[1]) - 1 : currentDay);   // renderDay가 메뉴도 그림
+  else renderTabbar();
   window.scrollTo({ top: 0 });
 }
-document.querySelector("nav.tabs").addEventListener("click", e => {
-  const b = e.target.closest("[data-view]"); if (!b) return;
-  const target = b.dataset.view === "schedule" ? "day" + (currentDay + 1) : b.dataset.view;
-  if (location.hash.slice(1) === target) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
-  location.hash = target;
+$("#tabbar").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.classList.contains("back")) { barMode = "main"; renderTabbar(); return; }
+  if (b.dataset.day != null) {
+    const target = "day" + (Number(b.dataset.day) + 1);
+    if (location.hash.slice(1) === target) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    location.hash = target; return;
+  }
+  const v = b.dataset.view;
+  if (v === "schedule") {            // 일정을 누르면 오늘 Day로, 메뉴는 Day 모드로
+    barMode = "days";
+    const target = "day" + (todayIndex() + 1);
+    if (location.hash.slice(1) === target) { show(target); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    else location.hash = target;
+    return;
+  }
+  barMode = "main";
+  if (location.hash.slice(1) === v) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+  location.hash = v;
 });
 window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
 renderPacking();
+const h0 = location.hash.slice(1);
+if (!/^day[1-4]$/.test(h0) && h0 !== "packing" && h0 !== "info") history.replaceState(null, "", "#day" + (todayIndex() + 1));
 show(location.hash.slice(1));
 loadMaps();
 </script>
