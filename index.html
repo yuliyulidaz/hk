@@ -197,6 +197,10 @@ header.page{margin-bottom:34px}
 .exp.friend .tag{color:var(--accent)}
 .exp.mine .tag{color:var(--faint)}
 .exp.mine .what,.exp.mine .amt{color:var(--muted)}
+.settle .sums{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;margin:22px 0 0;font-size:16px;font-variant-numeric:tabular-nums;align-items:baseline}
+.settle .sums dt{color:var(--muted);font-size:14px}
+.settle .sums dd{margin:0;font-weight:600}
+.settle .sums dd small{font-weight:400;color:var(--faint);font-size:13px;margin-left:8px}
 .settle .claim{margin-top:18px}
 .settle .claim .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .settle .claim .num{font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
@@ -777,12 +781,11 @@ const krw = h => "₩" + Math.round(h * MONEY.rate).toLocaleString("ko-KR");
 const hkd = h => "HK$" + Math.round(h).toLocaleString("ko-KR");
 function renderMoney() {
   const box = $("#money"), items = MONEY.items, ME = MONEY.me, FR = MONEY.friend;
-  $("#money-sub").textContent = `${ME}가 결제 · 여행 후 ${FR}에게 청구 · 1 HKD = ${MONEY.rate}원`;
+  $("#money-sub").textContent = `1 HKD = ${MONEY.rate}원`;
   if (!items.length) { box.innerHTML = `<p class="empty">아직 기록이 없어요.</p>`; return; }
   const sum = f => items.filter(f).reduce((n, i) => n + i.hkd, 0);
   const shared = sum(i => i.who === "공동"), fr = sum(i => i.who === FR), mine = sum(i => i.who === ME);
   const total = shared + fr + mine;
-  const claim = shared / 2 + fr;
   const cats = {}; items.filter(i => i.who === "공동").forEach(i => { cats[i.cat] = (cats[i.cat] || 0) + i.hkd; });
   const catMax = Math.max(...Object.values(cats), 1);
   const catRows = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([c, v]) =>
@@ -800,18 +803,14 @@ function renderMoney() {
   }).join("");
   box.innerHTML = `
     <div class="settle">
-      <div class="total">${hkd(total)}<small>${krw(total)} · 내가 낸 전부</small></div>
-      <div class="claim">
-        <div class="lbl">${esc(FR)}에게 청구</div>
-        <div class="num">${hkd(claim)}<small>≈ ${krw(claim)}</small></div>
-        <dl class="break">
-          <dt>공동 ${hkd(shared)}의 절반</dt><span class="line"></span><dd><b>${hkd(shared / 2)}</b></dd>
-          <dt>${esc(FR)} 개인</dt><span class="line"></span><dd><b>${hkd(fr)}</b></dd>
-          <dt>${esc(ME)} 개인 (청구 안 함)</dt><span class="line"></span><dd>${hkd(mine)}</dd>
-        </dl>
-      </div>
+      <div class="total">${hkd(total)}<small>${krw(total)}</small></div>
+      <dl class="sums">
+        <dt>공동</dt><dd>${hkd(shared)}<small>${krw(shared)}</small></dd>
+        <dt>${esc(FR)}</dt><dd>${hkd(fr)}<small>${krw(fr)}</small></dd>
+        <dt>${esc(ME)}</dt><dd>${hkd(mine)}<small>${krw(mine)}</small></dd>
+      </dl>
     </div>
-    <h3 style="margin-bottom:10px">공동 지출 분류</h3>
+    <h3 style="margin-bottom:10px">공동 분류</h3>
     <dl class="cats">${catRows}</dl>
     ${days}`;
 }
