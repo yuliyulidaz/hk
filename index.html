@@ -170,6 +170,31 @@ header.page{margin-bottom:34px}
 .big .mean{font-size:18px;color:var(--muted)}
 .big .small{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:var(--faint)}
 
+/* 정산 */
+.settle{margin:0 0 26px}
+.settle .total{font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.settle .total small{font-size:16px;color:var(--muted);font-weight:400;letter-spacing:0;margin-left:8px}
+.settle .each{color:var(--muted);font-size:14px;margin-top:8px;font-variant-numeric:tabular-nums}
+.settle .owe{margin-top:16px;font-size:17px;font-weight:600}
+.settle .owe b{color:var(--accent)}
+.settle .owe small{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:3px}
+.cats{display:grid;grid-template-columns:1fr auto;gap:6px 16px;margin:0 0 30px;font-size:14px;font-variant-numeric:tabular-nums}
+.cats dt{color:var(--muted);display:flex;align-items:center;gap:10px}
+.cats dt .bar{flex:1;height:2px;background:var(--hair);position:relative;min-width:40px}
+.cats dt .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);opacity:.7}
+.cats dd{margin:0;text-align:right}
+.exp-day{padding-block:22px;border-top:1px solid var(--hair)}
+.exp-day h3{display:flex;justify-content:space-between;margin-bottom:10px}
+.exp-day h3 span{font-variant-numeric:tabular-nums}
+.exp{display:grid;grid-template-columns:1fr auto;gap:0 14px;padding:8px 0;align-items:baseline}
+.exp .what{font-size:15px;min-width:0}
+.exp .meta{font-size:12.5px;color:var(--muted);margin-top:1px}
+.exp .meta .who{color:var(--fg)}
+.exp .amt{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exp .amt small{display:block;color:var(--faint);font-size:12px;text-align:right}
+.exp.personal .what{color:var(--muted)}
+.exp.personal .amt{color:var(--muted)}
+
 /* weather */
 .refresh{margin-left:12px;color:var(--accent);font-size:13px;font-weight:500}
 .refresh.busy{opacity:.5;pointer-events:none}
@@ -219,7 +244,7 @@ nav.tabs ul,nav.tabs .back{
 }
 nav.tabs ul{display:flex;align-items:center;gap:2px;margin:0;padding:5px;list-style:none;max-width:100%}
 nav.tabs ul button{
-  display:block;padding:9px 15px;border-radius:999px;
+  display:block;padding:9px 12px;border-radius:999px;
   font-size:14px;color:var(--muted);letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap;
   transition:color .2s,background .2s;
 }
@@ -285,6 +310,16 @@ nav.tabs button:active{transform:scale(.97)}
     </div>
     <p class="empty" id="mtrmsg" hidden>저장소에 <code id="mtrfile">mtr-map.jpg</code> 파일을 올리면 여기에 노선도가 뜹니다.</p>
 
+  </section>
+
+  <!-- 정산 -->
+  <section class="view" id="view-money" hidden>
+    <header class="page">
+      <p class="eyebrow">Expenses</p>
+      <h1>정산</h1>
+      <p class="sub" id="money-sub"></p>
+    </header>
+    <div id="money"></div>
   </section>
 </main>
 
@@ -398,6 +433,23 @@ const TRIP = {
 };
 
 /* ────────────────────────────────────────────── */
+
+// 정산 — 영수증 받아서 여기에 한 줄씩. 아래는 샘플(모양 확인용)
+const MONEY = {
+  rate: 178,              // 1 HKD = ? KRW (기록 시점 환율)
+  people: ["나나", "임"],
+  // { day, what, hkd, cat, by, split }  cat: 식비/교통/관광/쇼핑/숙박/기타  by: 낸 사람  split: false면 개인 비용(정산 제외)
+  items: [
+    { day: 1, what: "옥토퍼스 카드 2장 + 충전", hkd: 300, cat: "교통", by: "나나" },
+    { day: 1, what: "A21 버스 (옥토퍼스)", hkd: 0, cat: "교통", by: "나나", note: "옥토퍼스 차감, 기록용" },
+    { day: 1, what: "록이 딤섬 저녁", hkd: 286, cat: "식비", by: "임" },
+    { day: 1, what: "세븐일레븐 물·간식", hkd: 42, cat: "식비", by: "나나" },
+    { day: 2, what: "와록 빙실 아침", hkd: 96, cat: "식비", by: "나나" },
+    { day: 2, what: "침차이키 점심", hkd: 110, cat: "식비", by: "임" },
+    { day: 2, what: "피크트램 왕복 + 스카이테라스 2인", hkd: 296, cat: "관광", by: "나나" },
+    { day: 2, what: "PMQ 엽서", hkd: 60, cat: "쇼핑", by: "임", split: false },
+  ],
+};
 
 // 광둥어 — [뜻, 한자, 한글 발음, 메모]
 const PHRASES = [
@@ -707,6 +759,45 @@ $("#canto").addEventListener("click", e => {
 $("#bigphrase").addEventListener("click", () => { $("#bigphrase").hidden = true; });
 renderCanto();
 
+/* 정산 */
+const krw = h => "₩" + Math.round(h * MONEY.rate).toLocaleString("ko-KR");
+const hkd = h => "HK$" + h.toLocaleString("ko-KR");
+function renderMoney() {
+  const box = $("#money"), items = MONEY.items, [A, B] = MONEY.people;
+  $("#money-sub").textContent = `1 HKD = ${MONEY.rate}원 기준 · 영수증을 보내주면 여기에 정리`;
+  if (!items.length) { box.innerHTML = `<p class="empty">아직 기록이 없어요.</p>`; return; }
+  const shared = items.filter(i => i.split !== false);
+  const total = shared.reduce((n, i) => n + i.hkd, 0);
+  const paid = Object.fromEntries(MONEY.people.map(p => [p, shared.filter(i => i.by === p).reduce((n, i) => n + i.hkd, 0)]));
+  const each = total / MONEY.people.length;
+  const diff = paid[A] - each;             // +면 A가 더 냄 → B가 A에게
+  const owe = diff === 0 ? "정산할 금액 없음"
+    : diff > 0 ? `${B} → ${A} <b>${hkd(Math.round(diff))}</b>` : `${A} → ${B} <b>${hkd(Math.round(-diff))}</b>`;
+  const cats = {}; shared.forEach(i => { cats[i.cat] = (cats[i.cat] || 0) + i.hkd; });
+  const catMax = Math.max(...Object.values(cats), 1);
+  const catRows = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([c, v]) =>
+    `<dt>${esc(c)}<span class="bar"><i style="width:${(v / catMax * 100).toFixed(0)}%"></i></span></dt><dd>${hkd(v)}</dd>`).join("");
+  const byDay = {}; items.forEach(i => { (byDay[i.day] = byDay[i.day] || []).push(i); });
+  const days = Object.keys(byDay).map(Number).sort((a, b) => b - a).map(d => {
+    const list = byDay[d], sum = list.filter(i => i.split !== false).reduce((n, i) => n + i.hkd, 0);
+    const label = TRIP.days[d - 1] ? `${TRIP.days[d - 1].label} · ${fmtDate(TRIP.days[d - 1].date)}` : `Day ${d}`;
+    return `<section class="exp-day"><h3>${label}<span>${hkd(sum)}</span></h3>${list.map(i => `
+      <div class="exp${i.split === false ? " personal" : ""}">
+        <div><div class="what">${esc(i.what)}</div><div class="meta"><span class="who">${esc(i.by)}</span> · ${esc(i.cat)}${i.split === false ? " · 개인" : ""}${i.note ? ` · ${esc(i.note)}` : ""}</div></div>
+        <div class="amt">${hkd(i.hkd)}<small>${krw(i.hkd)}</small></div>
+      </div>`).join("")}</section>`;
+  }).join("");
+  box.innerHTML = `
+    <div class="settle">
+      <div class="total">${hkd(total)}<small>${krw(total)}</small></div>
+      <div class="each">공동 지출 · 1인당 ${hkd(Math.round(each))} · ${A} ${hkd(paid[A])} / ${B} ${hkd(paid[B])} 냄</div>
+      <div class="owe">${owe}<small>≈ ${krw(Math.abs(Math.round(diff)))} · 개인 비용은 제외</small></div>
+    </div>
+    <dl class="cats">${catRows}</dl>
+    ${days}`;
+}
+renderMoney();
+
 /* 날씨 (Open-Meteo, 키 불필요) — 저장해 두고 새로고침 버튼으로만 갱신 */
 const WX_KEY = "hk-weather-v1";
 const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=22.3&longitude=114.17"
@@ -839,7 +930,7 @@ function renderTabbar() {
   } else {
     ul.className = "";
     $("#tabnav .back")?.remove();
-    ul.innerHTML = [["schedule", "일정"], ["canto", "광둥어"], ["weather", "날씨"], ["info", "노선도"]].map(([v, t]) =>
+    ul.innerHTML = [["schedule", "일정"], ["canto", "광둥어"], ["weather", "날씨"], ["info", "노선도"], ["money", "정산"]].map(([v, t]) =>
       `<li><button type="button" data-view="${v}" ${v === currentView ? 'aria-current="page"' : ""}>${t}<span class="dot"></span></button></li>`).join("");
   }
 }
@@ -848,11 +939,11 @@ function show(h) {
   let view = "schedule";
   const m = /^day([1-4])$/.exec(h);
   const rm = TRIP.routeMaps.find(x => x.id === h);
-  if (h === "weather" || h === "canto") view = h;
+  if (h === "weather" || h === "canto" || h === "money") view = h;
   if (h === "info" || rm) view = "info";
   currentView = view;
-  if (view === "weather" || view === "canto") barMode = "main";
-  ["schedule", "canto", "weather", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
+  if (view === "weather" || view === "canto" || view === "money") barMode = "main";
+  ["schedule", "canto", "weather", "info", "money"].forEach(n => { $("#view-" + n).hidden = n !== view; });
   if (view === "schedule") renderDay(m ? Number(m[1]) - 1 : currentDay);   // renderDay가 메뉴도 그림
   else if (view === "info") showRouteMap(rm ? rm.id : currentMap);         // showRouteMap이 메뉴도 그림
   else renderTabbar();
@@ -892,7 +983,7 @@ $("#tabnav").addEventListener("click", e => {
 window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
 const h0 = location.hash.slice(1);
-if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "canto" && h0 !== "info" && !TRIP.routeMaps.some(x => x.id === h0)) history.replaceState(null, "", "#day" + (todayIndex() + 1));
+if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "canto" && h0 !== "money" && h0 !== "info" && !TRIP.routeMaps.some(x => x.id === h0)) history.replaceState(null, "", "#day" + (todayIndex() + 1));
 show(location.hash.slice(1));
 loadMaps();
 </script>
