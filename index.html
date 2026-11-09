@@ -192,8 +192,19 @@ header.page{margin-bottom:34px}
 .exp .meta .who{color:var(--fg)}
 .exp .amt{font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .exp .amt small{display:block;color:var(--faint);font-size:12px;text-align:right}
-.exp.personal .what{color:var(--muted)}
-.exp.personal .amt{color:var(--muted)}
+.exp .tag{display:inline-block;font-size:11px;letter-spacing:.08em;font-weight:600;margin-right:8px;vertical-align:1px}
+.exp.shared .tag{color:var(--muted)}
+.exp.friend .tag{color:var(--accent)}
+.exp.mine .tag{color:var(--faint)}
+.exp.mine .what,.exp.mine .amt{color:var(--muted)}
+.settle .claim{margin-top:18px}
+.settle .claim .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.settle .claim .num{font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.settle .claim .num small{font-size:15px;color:var(--muted);font-weight:400;letter-spacing:0;margin-left:8px}
+.settle .break{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;margin-top:10px;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.settle .break b{color:var(--fg);font-weight:500}
+.settle .break .line{border-bottom:1px dotted var(--hair);align-self:end;margin-bottom:5px}
+.settle .break dd{margin:0;text-align:right}
 
 /* weather */
 .refresh{margin-left:12px;color:var(--accent);font-size:13px;font-weight:500}
@@ -434,20 +445,22 @@ const TRIP = {
 
 /* ────────────────────────────────────────────── */
 
-// 정산 — 영수증 받아서 여기에 한 줄씩. 아래는 샘플(모양 확인용)
+// 정산 — 나나가 전부 결제, 여행 후 라라에게 청구. 아래는 샘플(모양 확인용)
 const MONEY = {
   rate: 178,              // 1 HKD = ? KRW (기록 시점 환율)
-  people: ["나나", "임"],
-  // { day, what, hkd, cat, by, split }  cat: 식비/교통/관광/쇼핑/숙박/기타  by: 낸 사람  split: false면 개인 비용(정산 제외)
+  me: "나나", friend: "라라",
+  // { day, what, hkd, cat, who, note }
+  //   who: "공동" = 반씩 나눔 / "라라" = 라라 것, 전액 청구 / "나나" = 내 것, 청구 안 함
+  //   cat: 식비 / 교통 / 관광 / 쇼핑 / 숙박 / 기타
   items: [
-    { day: 1, what: "옥토퍼스 카드 2장 + 충전", hkd: 300, cat: "교통", by: "나나" },
-    { day: 1, what: "A21 버스 (옥토퍼스)", hkd: 0, cat: "교통", by: "나나", note: "옥토퍼스 차감, 기록용" },
-    { day: 1, what: "록이 딤섬 저녁", hkd: 286, cat: "식비", by: "임" },
-    { day: 1, what: "세븐일레븐 물·간식", hkd: 42, cat: "식비", by: "나나" },
-    { day: 2, what: "와록 빙실 아침", hkd: 96, cat: "식비", by: "나나" },
-    { day: 2, what: "침차이키 점심", hkd: 110, cat: "식비", by: "임" },
-    { day: 2, what: "피크트램 왕복 + 스카이테라스 2인", hkd: 296, cat: "관광", by: "나나" },
-    { day: 2, what: "PMQ 엽서", hkd: 60, cat: "쇼핑", by: "임", split: false },
+    { day: 1, what: "옥토퍼스 카드 2장 + 충전", hkd: 300, cat: "교통", who: "공동" },
+    { day: 1, what: "록이 딤섬 저녁", hkd: 286, cat: "식비", who: "공동" },
+    { day: 1, what: "세븐일레븐 물·간식", hkd: 42, cat: "식비", who: "공동" },
+    { day: 2, what: "와록 빙실 아침", hkd: 96, cat: "식비", who: "공동" },
+    { day: 2, what: "침차이키 점심", hkd: 110, cat: "식비", who: "공동" },
+    { day: 2, what: "피크트램 왕복 + 스카이테라스 2인", hkd: 296, cat: "관광", who: "공동" },
+    { day: 2, what: "PMQ 엽서", hkd: 60, cat: "쇼핑", who: "라라", note: "라라가 산 것" },
+    { day: 2, what: "약국 립밤", hkd: 38, cat: "쇼핑", who: "나나" },
   ],
 };
 
@@ -761,38 +774,44 @@ renderCanto();
 
 /* 정산 */
 const krw = h => "₩" + Math.round(h * MONEY.rate).toLocaleString("ko-KR");
-const hkd = h => "HK$" + h.toLocaleString("ko-KR");
+const hkd = h => "HK$" + Math.round(h).toLocaleString("ko-KR");
 function renderMoney() {
-  const box = $("#money"), items = MONEY.items, [A, B] = MONEY.people;
-  $("#money-sub").textContent = `1 HKD = ${MONEY.rate}원 기준 · 영수증을 보내주면 여기에 정리`;
+  const box = $("#money"), items = MONEY.items, ME = MONEY.me, FR = MONEY.friend;
+  $("#money-sub").textContent = `${ME}가 결제 · 여행 후 ${FR}에게 청구 · 1 HKD = ${MONEY.rate}원`;
   if (!items.length) { box.innerHTML = `<p class="empty">아직 기록이 없어요.</p>`; return; }
-  const shared = items.filter(i => i.split !== false);
-  const total = shared.reduce((n, i) => n + i.hkd, 0);
-  const paid = Object.fromEntries(MONEY.people.map(p => [p, shared.filter(i => i.by === p).reduce((n, i) => n + i.hkd, 0)]));
-  const each = total / MONEY.people.length;
-  const diff = paid[A] - each;             // +면 A가 더 냄 → B가 A에게
-  const owe = diff === 0 ? "정산할 금액 없음"
-    : diff > 0 ? `${B} → ${A} <b>${hkd(Math.round(diff))}</b>` : `${A} → ${B} <b>${hkd(Math.round(-diff))}</b>`;
-  const cats = {}; shared.forEach(i => { cats[i.cat] = (cats[i.cat] || 0) + i.hkd; });
+  const sum = f => items.filter(f).reduce((n, i) => n + i.hkd, 0);
+  const shared = sum(i => i.who === "공동"), fr = sum(i => i.who === FR), mine = sum(i => i.who === ME);
+  const total = shared + fr + mine;
+  const claim = shared / 2 + fr;
+  const cats = {}; items.filter(i => i.who === "공동").forEach(i => { cats[i.cat] = (cats[i.cat] || 0) + i.hkd; });
   const catMax = Math.max(...Object.values(cats), 1);
   const catRows = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([c, v]) =>
     `<dt>${esc(c)}<span class="bar"><i style="width:${(v / catMax * 100).toFixed(0)}%"></i></span></dt><dd>${hkd(v)}</dd>`).join("");
+  const cls = w => w === "공동" ? "shared" : w === FR ? "friend" : "mine";
   const byDay = {}; items.forEach(i => { (byDay[i.day] = byDay[i.day] || []).push(i); });
   const days = Object.keys(byDay).map(Number).sort((a, b) => b - a).map(d => {
-    const list = byDay[d], sum = list.filter(i => i.split !== false).reduce((n, i) => n + i.hkd, 0);
+    const list = byDay[d], dsum = list.reduce((n, i) => n + i.hkd, 0);
     const label = TRIP.days[d - 1] ? `${TRIP.days[d - 1].label} · ${fmtDate(TRIP.days[d - 1].date)}` : `Day ${d}`;
-    return `<section class="exp-day"><h3>${label}<span>${hkd(sum)}</span></h3>${list.map(i => `
-      <div class="exp${i.split === false ? " personal" : ""}">
-        <div><div class="what">${esc(i.what)}</div><div class="meta"><span class="who">${esc(i.by)}</span> · ${esc(i.cat)}${i.split === false ? " · 개인" : ""}${i.note ? ` · ${esc(i.note)}` : ""}</div></div>
+    return `<section class="exp-day"><h3>${label}<span>${hkd(dsum)}</span></h3>${list.map(i => `
+      <div class="exp ${cls(i.who)}">
+        <div><div class="what"><span class="tag">${esc(i.who)}</span>${esc(i.what)}</div><div class="meta">${esc(i.cat)}${i.note ? ` · ${esc(i.note)}` : ""}</div></div>
         <div class="amt">${hkd(i.hkd)}<small>${krw(i.hkd)}</small></div>
       </div>`).join("")}</section>`;
   }).join("");
   box.innerHTML = `
     <div class="settle">
-      <div class="total">${hkd(total)}<small>${krw(total)}</small></div>
-      <div class="each">공동 지출 · 1인당 ${hkd(Math.round(each))} · ${A} ${hkd(paid[A])} / ${B} ${hkd(paid[B])} 냄</div>
-      <div class="owe">${owe}<small>≈ ${krw(Math.abs(Math.round(diff)))} · 개인 비용은 제외</small></div>
+      <div class="total">${hkd(total)}<small>${krw(total)} · 내가 낸 전부</small></div>
+      <div class="claim">
+        <div class="lbl">${esc(FR)}에게 청구</div>
+        <div class="num">${hkd(claim)}<small>≈ ${krw(claim)}</small></div>
+        <dl class="break">
+          <dt>공동 ${hkd(shared)}의 절반</dt><span class="line"></span><dd><b>${hkd(shared / 2)}</b></dd>
+          <dt>${esc(FR)} 개인</dt><span class="line"></span><dd><b>${hkd(fr)}</b></dd>
+          <dt>${esc(ME)} 개인 (청구 안 함)</dt><span class="line"></span><dd>${hkd(mine)}</dd>
+        </dl>
+      </div>
     </div>
+    <h3 style="margin-bottom:10px">공동 지출 분류</h3>
     <dl class="cats">${catRows}</dl>
     ${days}`;
 }
