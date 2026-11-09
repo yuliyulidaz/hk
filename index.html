@@ -152,6 +152,24 @@ header.page{margin-bottom:34px}
 .stop .pin[aria-pressed="true"]{color:var(--accent)}
 .stop.move .place{font-weight:400;color:var(--muted)}
 
+/* 광둥어 */
+.ph-group{padding-block:22px;border-top:1px solid var(--hair)}
+.ph-group:first-child{border-top:0;padding-top:0}
+.ph-group h3{margin:0 0 6px}
+.ph{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:11px 0;border-radius:6px}
+.ph .mean{font-size:13px;color:var(--muted)}
+.ph .row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ph .hanzi{font-size:21px;font-weight:600;letter-spacing:.02em}
+.ph .romk{font-size:16px;color:var(--accent);font-weight:500}
+.ph .tip{font-size:12.5px;color:var(--faint);margin-top:2px}
+.ph:active{background:var(--accent-soft)}
+.big{position:fixed;inset:0;z-index:40;background:var(--bg);display:grid;place-content:center;text-align:center;
+  padding:max(16px,env(safe-area-inset-left,0px));gap:10px}
+.big .hanzi{font-size:min(18vw,96px);font-weight:700;line-height:1.1;letter-spacing:.02em}
+.big .romk{font-size:min(7vw,34px);color:var(--accent);font-weight:600}
+.big .mean{font-size:18px;color:var(--muted)}
+.big .small{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:var(--faint)}
+
 /* weather */
 .refresh{margin-left:12px;color:var(--accent);font-size:13px;font-weight:500}
 .refresh.busy{opacity:.5;pointer-events:none}
@@ -201,7 +219,7 @@ nav.tabs ul,nav.tabs .back{
 }
 nav.tabs ul{display:flex;align-items:center;gap:2px;margin:0;padding:5px;list-style:none;max-width:100%}
 nav.tabs ul button{
-  display:block;padding:9px 18px;border-radius:999px;
+  display:block;padding:9px 15px;border-radius:999px;
   font-size:14px;color:var(--muted);letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap;
   transition:color .2s,background .2s;
 }
@@ -231,6 +249,17 @@ nav.tabs button:active{transform:scale(.97)}
     </div>
     <div class="daybody" id="daybody"></div>
   </section>
+
+  <!-- 광둥어 -->
+  <section class="view" id="view-canto" hidden>
+    <header class="page">
+      <p class="eyebrow">Cantonese</p>
+      <h1>광둥어</h1>
+      <p class="sub">누르면 크게 보여줄 수 있어요</p>
+    </header>
+    <div id="canto"></div>
+  </section>
+  <div class="big" id="bigphrase" hidden><div class="hanzi"></div><div class="romk"></div><div class="mean"></div><p class="small">아무 데나 눌러 닫기</p></div>
 
   <!-- 날씨 -->
   <section class="view" id="view-weather" hidden>
@@ -369,6 +398,42 @@ const TRIP = {
 };
 
 /* ────────────────────────────────────────────── */
+
+// 광둥어 — [뜻, 한자, 한글 발음, 메모]
+const PHRASES = [
+  { group: "인사", items: [
+    ["안녕하세요", "你好", "네이 호우"],
+    ["감사합니다 (서비스·도움에)", "唔該", "음꼬이", "가장 많이 쓰는 말. 점원 부를 때 '저기요', 부탁할 때 '~해주세요'도 전부 이 한마디"],
+    ["감사합니다 (선물·호의에)", "多謝", "또쩨", "뭔가 받았을 때. 식당·가게에선 唔該가 맞음"],
+    ["죄송합니다", "對唔住", "뚜이 음 쮜"],
+    ["네 / 아니요", "係 / 唔係", "하이 / 음 하이"],
+  ]},
+  { group: "숫자", items: [
+    ["1개", "一個", "얏 꼬"],
+    ["2개", "兩個", "렁 꼬"],
+    ["3개", "三個", "쌈 꼬"],
+    ["4개", "四個", "세이 꼬"],
+    ["5개", "五個", "응 꼬"],
+  ]},
+  { group: "식당", items: [
+    ["2명이요", "兩位", "렁 와이", "들어가면서 손가락 두 개와 함께"],
+    ["이거 주세요", "要呢個", "이우 니 꼬", "메뉴 가리키면서"],
+    ["계산해주세요", "唔該埋單", "음꼬이 마이딴"],
+    ["여기서 먹어요 / 포장이요", "堂食 / 行街", "통 씩 / 항 까이", "차찬탱·완탕면집에서 꼭 물어봄"],
+    ["물 한 잔이요", "一杯水", "얏 부이 소이"],
+    ["밀크티 (뜨거운 / 차가운)", "熱奶茶 / 凍奶茶", "잇 나이차 / 똥 나이차"],
+    ["덜 달게", "少甜", "시우 팀"],
+    ["안 맵게", "唔要辣", "음 이우 랏"],
+    ["맛있어요", "好食", "호우 씩"],
+  ]},
+  { group: "가게·길", items: [
+    ["얼마예요?", "幾多錢", "게이 또 친"],
+    ["괜찮아요, 필요 없어요", "唔使", "음 싸이", "봉투·영수증 권할 때, 호객에"],
+    ["화장실 어디예요?", "洗手間喺邊度", "싸이사우깐 하이 빈도우"],
+    ["옥토퍼스 카드", "八達通", "빳 닷 통"],
+    ["내려요 (미니버스에서)", "有落", "야우 록", "미니버스는 벨이 없어서 이렇게 외쳐야 섬"],
+  ]},
+];
 
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -622,6 +687,26 @@ $("#daybody").addEventListener("click", e => {
   renderDay(currentDay);
 });
 
+/* 광둥어 */
+function renderCanto() {
+  $("#canto").innerHTML = PHRASES.map(g => `<section class="ph-group"><h3>${esc(g.group)}</h3>${
+    g.items.map(([mean, hz, rk, tip], i) => `<button type="button" class="ph" data-hz="${esc(hz)}" data-rk="${esc(rk)}" data-mean="${esc(mean)}">
+      <span class="mean">${esc(mean)}</span>
+      <span class="row"><span class="hanzi">${esc(hz)}</span><span class="romk">${esc(rk)}</span></span>
+      ${tip ? `<span class="tip">${esc(tip)}</span>` : ""}
+    </button>`).join("")}</section>`).join("");
+}
+$("#canto").addEventListener("click", e => {
+  const b = e.target.closest(".ph"); if (!b) return;
+  const big = $("#bigphrase");
+  big.querySelector(".hanzi").textContent = b.dataset.hz;
+  big.querySelector(".romk").textContent = b.dataset.rk;
+  big.querySelector(".mean").textContent = b.dataset.mean;
+  big.hidden = false;
+});
+$("#bigphrase").addEventListener("click", () => { $("#bigphrase").hidden = true; });
+renderCanto();
+
 /* 날씨 (Open-Meteo, 키 불필요) — 저장해 두고 새로고침 버튼으로만 갱신 */
 const WX_KEY = "hk-weather-v1";
 const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=22.3&longitude=114.17"
@@ -754,7 +839,7 @@ function renderTabbar() {
   } else {
     ul.className = "";
     $("#tabnav .back")?.remove();
-    ul.innerHTML = [["schedule", "일정"], ["weather", "날씨"], ["info", "노선도"]].map(([v, t]) =>
+    ul.innerHTML = [["schedule", "일정"], ["canto", "광둥어"], ["weather", "날씨"], ["info", "노선도"]].map(([v, t]) =>
       `<li><button type="button" data-view="${v}" ${v === currentView ? 'aria-current="page"' : ""}>${t}<span class="dot"></span></button></li>`).join("");
   }
 }
@@ -763,11 +848,11 @@ function show(h) {
   let view = "schedule";
   const m = /^day([1-4])$/.exec(h);
   const rm = TRIP.routeMaps.find(x => x.id === h);
-  if (h === "weather") view = "weather";
+  if (h === "weather" || h === "canto") view = h;
   if (h === "info" || rm) view = "info";
   currentView = view;
-  if (view === "weather") barMode = "main";
-  ["schedule", "weather", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
+  if (view === "weather" || view === "canto") barMode = "main";
+  ["schedule", "canto", "weather", "info"].forEach(n => { $("#view-" + n).hidden = n !== view; });
   if (view === "schedule") renderDay(m ? Number(m[1]) - 1 : currentDay);   // renderDay가 메뉴도 그림
   else if (view === "info") showRouteMap(rm ? rm.id : currentMap);         // showRouteMap이 메뉴도 그림
   else renderTabbar();
@@ -807,7 +892,7 @@ $("#tabnav").addEventListener("click", e => {
 window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
 const h0 = location.hash.slice(1);
-if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "info" && !TRIP.routeMaps.some(x => x.id === h0)) history.replaceState(null, "", "#day" + (todayIndex() + 1));
+if (!/^day[1-4]$/.test(h0) && h0 !== "weather" && h0 !== "canto" && h0 !== "info" && !TRIP.routeMaps.some(x => x.id === h0)) history.replaceState(null, "", "#day" + (todayIndex() + 1));
 show(location.hash.slice(1));
 loadMaps();
 </script>
