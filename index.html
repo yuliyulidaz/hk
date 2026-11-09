@@ -270,10 +270,10 @@ const TRIP = {
   mapMode: "DRIVE",          // 하루 전체 경로선 기준: DRIVE / WALK / BICYCLE (대중교통은 구간 단위에서만 가능)
   days: [
     { label: "Day 1", date: "2026-11-17", items: [
-      { place: "홍콩 국제공항 도착", lat: 22.3080, lng: 113.9185 },
-      { place: "YMCA The Salisbury 체크인", note: "41 Salisbury Rd, 침사추이", lat: 22.2953, lng: 114.1710,
+      { time: "17:00", place: "홍콩 국제공항 도착 · CX453", note: "터미널 1 · 입국심사·수하물 45분~1시간 · 공항에서 옥토퍼스 구입·ATM", lat: 22.3080, lng: 113.9185 },
+      { place: "YMCA The Salisbury 체크인", note: "41 Salisbury Rd, 침사추이 · 19:00~19:30 도착 예상", lat: 22.2953, lng: 114.1710,
         via: { type: "bus", label: "A21 버스", detail: "터미널 밖 버스 정류장에서 A21 탑승, 네이선 로드 하차 후 도보. 옥토퍼스 가능", dur: "약 60분" } },
-      { place: "저녁 식사", note: "호텔 근처 후보 5곳 중 현지에서 선택",
+      { place: "저녁 식사", note: "20시쯤 · 호텔 근처 후보 5곳 중 현지에서 선택 · 전부 23시 이후까지 영업",
         options: [
           { name: "록이 딤섬 樂意點心", placeId: "ChIJL_VUFT8BBDQREUyEc9DmwJk", menu: "연잎 찹쌀밥 · 차슈 창펀 · 하가우", lat: 22.2969, lng: 114.1710, note: "도보 3분 · ~23:30" },
           { name: "융스 진피 로스트구스 榕哥陳皮燒鵝", placeId: "ChIJy_qbMOUBBDQRLqO15AdUQlI", menu: "진피 거위구이 · 새끼돼지 · 차슈 덮밥", lat: 22.2993, lng: 114.1751, note: "도보 8분 · ~24:00" },
@@ -346,11 +346,12 @@ const TRIP = {
         via: { type: "walk", label: "도보", dur: "5분" } },
     ]},
     { label: "Day 4", date: "2026-11-20", items: [
-      { time: "10:00", place: "체크아웃 · 짐 맡기기", lat: 22.2946, lng: 114.1717 },
-      { time: "11:00", place: "하버시티 · 1881 헤리티지", lat: 22.2953, lng: 114.1690,
+      { time: "10:00", place: "체크아웃 · 짐 맡기기", note: "호텔 짐 보관 후 가볍게", lat: 22.2953, lng: 114.1710 },
+      { place: "자유시간", note: "호텔 근처 · 13:00까지 · 하버시티·1881 헤리티지·K11 뮤제아 등 걸어서 5분", lat: 22.2953, lng: 114.1690 },
+      { time: "13:00", place: "호텔 출발 → 공항", note: "짐 찾아서 출발", lat: 22.2953, lng: 114.1710,
         via: { type: "walk", label: "도보", dur: "5분" } },
-      { time: "17:30", place: "홍콩 국제공항 출발", lat: 22.3080, lng: 113.9185,
-        via: { type: "bus", label: "A21 버스", detail: "14:00쯤 출발. 체크인 마감 전 도착하려면 여유 있게", dur: "약 60분" } },
+      { time: "16:50", place: "홍콩 국제공항 출발 · CX416", note: "터미널 1 · 14:20까지 도착 권장(출발 2시간 30분 전)", lat: 22.3080, lng: 113.9185,
+        via: { type: "bus", label: "A21 버스 (또는 공항철도)", detail: "네이선 로드 정류장에서 A21, 터미널 1 하차 약 60분. 짐이 많으면 택시로 카우룽역(10분) → 공항철도 24분, 카우룽역에서 캐세이 도심 체크인·짐 부치기 가능(출발 90분 전까지)", dur: "약 60~75분" } },
     ]},
   ],
   // 노선도 탭: 저장소에 같은 이름의 이미지 파일을 올리면 표시됨
