@@ -823,7 +823,7 @@ const krw = h => "₩" + Math.round(h * MONEY.rate).toLocaleString("ko-KR");
 const hkd = h => "HK$" + Math.round(h).toLocaleString("ko-KR");
 function renderMoney() {
   const box = $("#money"), items = MONEY.items, ME = MONEY.me, FR = MONEY.friend;
-  $("#money-sub").textContent = `1 HKD = ${MONEY.rate}원`;
+  $("#money-sub").textContent = "";
   if (!items.length) { box.innerHTML = `<p class="empty">아직 기록이 없어요.</p>`; return; }
   const sum = f => items.filter(f).reduce((n, i) => n + i.hkd, 0);
   const shared = sum(i => i.who === "공동"), fr = sum(i => i.who === FR), mine = sum(i => i.who === ME);
