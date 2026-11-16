@@ -840,16 +840,16 @@ function renderMoney() {
     return `<section class="exp-day"><h3>${label}<span>${hkd(dsum)}</span></h3>${list.map(i => `
       <div class="exp ${cls(i.who)}">
         <div><div class="what"><span class="tag">${esc(i.who)}</span>${esc(i.what)}</div><div class="meta">${esc(i.cat)}${i.note ? ` · ${esc(i.note)}` : ""}</div></div>
-        <div class="amt">${hkd(i.hkd)}<small>${krw(i.hkd)}</small></div>
+        <div class="amt">${hkd(i.hkd)}</div>
       </div>`).join("")}</section>`;
   }).join("");
   box.innerHTML = `
     <div class="settle">
-      <div class="total">${hkd(total)}<small>${krw(total)}</small></div>
+      <div class="total">${hkd(total)}</div>
       <dl class="sums">
-        <dt>공동</dt><dd>${hkd(shared)}<small>${krw(shared)}</small></dd>
-        <dt>${esc(FR)}</dt><dd>${hkd(fr)}<small>${krw(fr)}</small></dd>
-        <dt>${esc(ME)}</dt><dd>${hkd(mine)}<small>${krw(mine)}</small></dd>
+        <dt>공동</dt><dd>${hkd(shared)}</dd>
+        <dt>${esc(FR)}</dt><dd>${hkd(fr)}</dd>
+        <dt>${esc(ME)}</dt><dd>${hkd(mine)}</dd>
       </dl>
     </div>
     <h3 style="margin-bottom:10px">공동 분류</h3>
