@@ -375,8 +375,16 @@ const TRIP = {
         ],
         via: { type: "mtr", label: "MTR", detail: "침사추이역 → 센트럴역(췬완선) → 셩완역(아일랜드선) A2 출구, 오르막 도보 5~8분. 또는 스타페리로 센트럴 건너가 도보 15분", dur: "약 30분" } },
       { place: "만모우 사원 文武廟", note: "셩완 · 할리우드 로드 · ~18:00", lat: 22.2840, lng: 114.1502, placeId: "ChIJkR_N-HsABDQR49-CU5m1ShU",
+        extrasIcon: "coffee", extrasLabel: "근처 커피", extras: [
+          { name: "Halfway Coffee", placeId: "ChIJAQAhpH4ABDQRJ9C5gcbz0II", menu: "흑설탕 라떼 · 플랫화이트 (옛 홍콩 찻잔)", price: "약 HK$45~60", hours: "8:00~18:00", lat: 22.2847, lng: 114.1498, note: "캣 스트리트, 사원에서 2분 · 골목 야외 자리" },
+          { name: "Cupping Room 셩완", placeId: "ChIJ81r536kBBDQRiuaBl3Ktygo", menu: "스페셜티 드립 · 플랫화이트", price: "약 HK$45~55", hours: "8:00~23:30", lat: 22.2854, lng: 114.1507, note: "홍콩 로스터리 중 최고 평, 커피 맛으로 고르면 여기" },
+        ],
         via: { type: "walk", label: "도보", detail: "세 곳 다 사원에서 3~5분 안", dur: "4분" } },
       { place: "미드레벨 에스컬레이터", note: "10시 이후 올라가는 방향 · 소호·엘긴 스트리트까지", lat: 22.2838, lng: 114.1550, placeId: "ChIJk1YpX3sABDQRcEUrangY1CY",
+        extrasIcon: "tart", extrasLabel: "근처 에그타르트", extras: [
+          { name: "Bakehouse 소호", placeId: "ChIJKWtr4KEBBDQR409tdnXjioU", menu: "사워도우 에그타르트 · 크루아상", price: "타르트 약 HK$13", hours: "8:00~21:00", lat: 22.2817, lng: 114.1531, note: "에스컬레이터 중간 스턴튼 스트리트 · 줄 있음" },
+          { name: "타이청 泰昌餅家", placeId: "ChIJY0UbcnsABDQRGSLSUdFl1yI", menu: "쿠키 크러스트 에그타르트 (1954년 원조)", price: "약 HK$11", hours: "9:30~19:30", lat: 22.2826, lng: 114.1536, note: "린드허스트 테라스, 에스컬레이터 바로 옆" },
+        ],
         via: { type: "walk", label: "도보", detail: "할리우드 로드 따라 동쪽으로 내리막. 사원 뒤 포호 골목·PMQ 지남", dur: "12분" } },
       { place: "타이쿤 大館", note: "옛 중앙경찰서·빅토리아 감옥 · 건물과 안뜰만 둘러보기 30분 · 무료", lat: 22.2812, lng: 114.1540, placeId: "ChIJ5wsqFHsABDQRjRR4AEF6Zkg",
         via: { type: "walk", label: "도보", detail: "에스컬레이터에서 스턴튼 스트리트 쪽으로 내려오면 바로. 갈색 안내판 따라", dur: "5분" } },
@@ -386,12 +394,22 @@ const TRIP = {
         ],
         via: { type: "walk", label: "도보", detail: "타이쿤에서 내리막으로 웰링턴 스트리트", dur: "4분" } },
       { place: "2층 트램(딩딩) 탑승", note: "데보로드 센트럴 정류장 · 센트럴 마켓 앞 · 동쪽행", lat: 22.2843, lng: 114.1556,
+        extrasIcon: "tart", extrasLabel: "근처 에그타르트", extras: [
+          { name: "마리아 베이커리 超羣", placeId: "ChIJTeO_YGMABDQRsjhwGCAT1wM", menu: "포르투갈식 에그타르트 · 홍콩식 에그타르트", price: "HK$18 / HK$9", hours: "7:00~21:30", lat: 22.2833, lng: 114.1574, note: "1966년 노포 · 정류장에서 2분 · 트램 안에서 먹기 좋음" },
+        ],
         via: { type: "walk", label: "도보", dur: "5분" } },
       { place: "빅토리아 공원 維多利亞公園", note: "코즈웨이베이 · 홍콩섬 가장 큰 공원 · 점심시간 쉬는 사람들, 조깅 트랙, 축구장 · 분수 쪽 한 바퀴 30~40분", lat: 22.2820, lng: 114.1890,
+        extrasIcon: "coffee", extrasLabel: "근처 카페", extras: [
+          { name: "Plumcot (타이항)", placeId: "ChIJkfVqRasBBDQRX-aj5wPe-OI", menu: "까눌레 · 밀푀유 · 오트밀 쿠키", price: "약 HK$30~60", hours: "수~일 8:00~18:00", lat: 22.2783, lng: 114.1923, note: "공원 남동쪽 출구에서 7분 · 동네 사람들 줄 서는 프랑스 페이스트리" },
+          { name: "Elephant Grounds (패션워크)", placeId: "ChIJUZLie1YABDQR9KZH9b0jCNQ", menu: "플랫화이트 · 팬케이크", price: "커피 약 HK$45", hours: "~22:00", lat: 22.2818, lng: 114.1853, note: "공원 서쪽 5분 · 넓어서 쉬어가기 좋음" },
+        ],
         via: { type: "tram", label: "트램 (동쪽행)", detail: "동쪽행 아무거나 탑승. 2층 맨 앞자리. 완차이 지나 'Victoria Park' 정류장 하차, 공원 입구까지 2분. 정액 HK$3, 내릴 때 옥토퍼스", dur: "약 20분" } },
       { place: "홍콩 중앙도서관 외관", note: "코즈웨이 로드 66 · 공원 바로 건너편 · 수요일은 13시 개관이라 오후면 안에 들어가 쉴 수도 있음", lat: 22.2803, lng: 114.1898, placeId: "ChIJ5WJlm50BBDQRrLYAiR0Qm7Y",
         via: { type: "walk", label: "도보", detail: "공원 남서쪽 출구에서 코즈웨이 로드 건너면 바로", dur: "3분" } },
       { place: "춘영 스트리트 시장 春秧街", note: "노스포인트 종점 · 도착 직전 2~3분이 좌판 사이 구간 · 내려서 되돌아 걸으며 30분", lat: 22.2913, lng: 114.1988,
+        extrasIcon: "tart", extrasLabel: "근처 에그타르트", extras: [
+          { name: "홍팀 康甜餅店", placeId: "ChIJCytRLg4BBDQRLJFdSsiMFxA", menu: "에그타르트 · 땅콩빵 · 바스크 치즈케이크", price: "타르트 HK$6", hours: "7:00~20:00", lat: 22.2914, lng: 114.2069, note: "星島일보 선정 · 시장 동쪽 끝에서 5분 · 가장 동네스러운 곳" },
+        ],
         via: { type: "tram", label: "트램 (노스포인트행)", detail: "도서관 앞 코즈웨이 로드 정류장에서 행선지 北角 North Point 확인하고 탑승. 노스포인트 직전에 오른쪽으로 꺾어 시장 안으로 들어가면 종점", dur: "약 15분" } },
       { place: "피크트램 하부역", note: "가든 로드 33 · 저녁엔 줄이 길어 온라인 예매 권장 · 길면 15번 버스 대안 · 일몰 17:45쯤", lat: 22.2777, lng: 114.1592, placeId: "ChIJx_WyiXMABDQRJnFIJdc19Kw",
         via: { type: "mtr", label: "MTR 아일랜드선", detail: "노스포인트역 → 애드미럴티역 C1 출구, 홍콩 공원 가로질러 가든 로드 (도보 10분)", dur: "약 25분" } },
@@ -447,6 +465,7 @@ const TRIP = {
   // 항목 형식: { time, place, note, lat, lng, via, options }
   //   options = 후보 여러 곳(식당 등): [{ name, menu, lat, lng, note, placeId }]  — 항목을 누르면 후보들이 색깔 핀으로 지도에
   //   placeId 가 있으면 가게 옆 ↗ 가 구글 지도 상세 페이지로 연결
+  //   extras = 그 장소 근처 간식·카페: [{ name, menu, price, hours, lat, lng, note, placeId }]  extrasIcon: tart / coffee  extrasLabel: 표시 이름
   //   via = 바로 앞 장소에서 이 장소까지 오는 방법: { type, label, detail, dur, mode }
   //   type: bus / mtr / ferry / tram / walk / taxi / plane   — 아이콘 결정
   //   mode: 그 구간 경로선 기준 TRANSIT / WALK / DRIVE (기본 transit, 도보는 WALK, 택시는 DRIVE)
@@ -532,6 +551,7 @@ let currentDay = todayIndex();
 let activeLeg = null;   // 펼쳐진 이동 구간의 도착 장소 index
 let activePlace = null; // 핀을 눌러 지도 가운데로 둔 장소 index
 let activeChoice = null; // 후보 목록을 지도에 띄운 항목 index
+let activeKind = "options"; // "options"(식사 후보) 또는 "extras"(근처 간식)
 let activeOption = null; // 그중 강조한 후보 index
 const OPT_COLORS = ["--o1", "--o2", "--o3", "--o4", "--o5"];
 const OPT_LETTERS = "ABCDEFGH";
@@ -545,6 +565,8 @@ const ICONS = {
   taxi:  '<svg viewBox="0 0 24 24"><path d="M5 17h14M4 17v-5l2-5h12l2 5v5M6 11h12M7 17v2M17 17v2M9 7V5h6v2"/></svg>',
   food:  '<svg viewBox="0 0 24 24"><path d="M7 3v7a3 3 0 0 0 6 0V3M10 3v18M17 3c-1.5 1.5-2 4-2 7v2h3v9M18 3v9"/></svg>',
   ext:   '<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  tart:  '<svg viewBox="0 0 24 24"><path d="M4 11h16l-2 9H6zM4 11c0-2 2-3 4-3 1-2 3-3 4-3s3 1 4 3c2 0 4 1 4 3M9 15h.01M12 17h.01M15 15h.01"/></svg>',
+  coffee:'<svg viewBox="0 0 24 24"><path d="M4 9h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4zM16 10h2a2 2 0 0 1 0 4h-2M7 5c0 1 1 1 1 2M11 5c0 1 1 1 1 2"/></svg>',
   pin:   '<svg viewBox="0 0 24 24"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>',
   plane: '<svg viewBox="0 0 24 24"><path d="M3 13l8 2 3 6 2-1-1-7 5-3c1-.6 1-2-.5-2L15 9 9 3 7 4l3 6-6 1z"/></svg>',
 };
@@ -614,9 +636,9 @@ async function updateMap() {
 
   // 후보(식당) 모드: 색깔 핀만
   const choice = activeChoice != null ? day.items[activeChoice] : null;
-  if (choice && choice.options?.length) {
+  if (choice && choice[activeKind]?.length) {
     showMapMsg("");
-    const opts = choice.options;
+    const opts = choice[activeKind];
     day.items.forEach((it, n) => {           // 나머지 일정 핀은 흐리게
       if (it.lat == null) return;
       const el = document.createElement("div"); el.className = "gpin dim"; el.textContent = n + 1;
@@ -689,7 +711,7 @@ async function updateMap() {
 }
 
 function renderDay(i) {
-  if (i !== currentDay) { activeLeg = null; activePlace = null; activeChoice = null; activeOption = null; }
+  if (i !== currentDay) { activeLeg = null; activePlace = null; activeChoice = null; activeOption = null; activeKind = "options"; }
   currentDay = i; const d = TRIP.days[i];
   const rows = [];
   const hasTime = d.items.some(x => x.time);
@@ -709,16 +731,18 @@ function renderDay(i) {
         : hasOpts ? `<button type="button" class="pin choice" data-choice="${n}" aria-pressed="${activeChoice === n}" aria-label="후보를 지도에서 보기">${ICONS.pin}</button>` : ""}</span>
       ${it.note ? `<span class="note">${esc(it.note)}</span>` : ""}
     </li>`);
-    if (hasOpts) {
-      const on = activeChoice === n;
-      rows.push(`<li class="choices${on ? " active" : ""}" data-choice="${n}"><span></span><div class="body">
-        <button type="button" class="toggle" aria-expanded="${on}">${ICONS.food}<span>후보</span>${!on ? `<span class="dur">${it.options.length}곳</span>` : ""}</button>
-        <ul>${it.options.map((o, k) => `<li><button type="button" data-opt="${k}" aria-pressed="${on && activeOption === k}" style="--c:var(${OPT_COLORS[k % OPT_COLORS.length]})">
+    const choiceBlock = (kind, list, icon, label) => {
+      const on = activeChoice === n && activeKind === kind;
+      return `<li class="choices${on ? " active" : ""}" data-choice="${n}" data-kind="${kind}"><span></span><div class="body">
+        <button type="button" class="toggle" aria-expanded="${on}">${icon}<span>${label}</span>${!on ? `<span class="dur">${list.length}곳</span>` : ""}</button>
+        <ul>${list.map((o, k) => `<li><button type="button" data-opt="${k}" aria-pressed="${on && activeOption === k}" style="--c:var(${OPT_COLORS[k % OPT_COLORS.length]})">
           <span class="dot">${OPT_LETTERS[k]}</span>
-          <span class="nm">${esc(o.name)}<small>${esc(o.menu || "")}${o.note ? ` · ${esc(o.note)}` : ""}</small></span>
+          <span class="nm">${esc(o.name)}<small>${[o.menu, o.price, o.hours].filter(Boolean).map(esc).join(" · ")}${o.note ? ` · ${esc(o.note)}` : ""}</small></span>
         </button><a class="ext" href="${gmapsPlace(o)}" target="_blank" rel="noopener" aria-label="${esc(o.name)} 구글 지도에서 보기">${ICONS.ext}</a></li>`).join("")}</ul>
-      </div></li>`);
-    }
+      </div></li>`;
+    };
+    if (hasOpts) rows.push(choiceBlock("options", it.options, ICONS.food, "후보"));
+    if (it.extras?.length) rows.push(choiceBlock("extras", it.extras, ICONS[it.extrasIcon || "tart"], it.extrasLabel || "근처 간식"));
   });
   $("#daybody").innerHTML = `<div class="dayhead"><h2>${esc(d.label)}</h2><span class="date">${fmtDate(d.date)}</span></div>` +
     (rows.length ? `<ol class="timeline${hasTime ? "" : " notime"}">${rows.join("")}</ol>` : `<p class="empty">아직 비어 있어요.</p>`);
@@ -728,16 +752,17 @@ function renderDay(i) {
 $("#daybody").addEventListener("click", e => {
   const opt = e.target.closest("[data-opt]");
   if (opt) {                                   // 후보 하나 → 그 후보 강조
-    const n = Number(opt.closest(".choices").dataset.choice), k = Number(opt.dataset.opt);
-    if (activeChoice === n && activeOption === k) { activeOption = null; }
-    else { activeChoice = n; activeOption = k; }
+    const blk = opt.closest(".choices"), n = Number(blk.dataset.choice), kind = blk.dataset.kind || "options", k = Number(opt.dataset.opt);
+    if (activeChoice === n && activeKind === kind && activeOption === k) { activeOption = null; }
+    else { activeChoice = n; activeKind = kind; activeOption = k; }
     activeLeg = null; activePlace = null;
     renderDay(currentDay); return;
   }
   const cpin = e.target.closest(".pin.choice, .choices .toggle");
-  if (cpin) {                                  // 항목 옆 핀 또는 '후보' → 펼치기 + 후보 전체 지도
-    const n = Number(cpin.closest("[data-choice]").dataset.choice);
-    if (activeChoice === n) { activeChoice = null; activeOption = null; } else { activeChoice = n; activeOption = null; }
+  if (cpin) {                                  // 항목 옆 핀 또는 '후보/간식' → 펼치기 + 전체 지도
+    const blk = cpin.closest("[data-choice]"), n = Number(blk.dataset.choice), kind = blk.dataset.kind || "options";
+    if (activeChoice === n && activeKind === kind) { activeChoice = null; activeOption = null; }
+    else { activeChoice = n; activeKind = kind; activeOption = null; }
     activeLeg = null; activePlace = null;
     renderDay(currentDay); return;
   }
